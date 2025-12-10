@@ -1,0 +1,808 @@
+# NEXUS DATA INTELLIGENCE - AGENTS & WORKFLOWS
+
+## Overview
+This document defines all AI agents, automated workflows, and their interactions within the Nexus Data Intelligence platform.
+
+---
+
+## AGENT ARCHITECTURE
+
+### Agent Hierarchy
+```
+Master Orchestrator Agent
+├── Data Collection Agents
+│   ├── LinkedIn Agent
+│   ├── Google Maps Agent
+│   ├── Web Scraper Agent (generic)
+│   └── API Integration Agent
+├── Data Processing Agents
+│   ├── Validation Agent
+│   ├── Enrichment Agent
+│   ├── Deduplication Agent
+│   └── Quality Scoring Agent
+├── Customer Success Agents
+│   ├── Onboarding Agent
+│   ├── Support Agent
+│   └── Retention Agent
+└── Business Intelligence Agents
+    ├── Analytics Agent
+    ├── Reporting Agent
+    └── Prediction Agent
+```
+
+---
+
+## CORE AGENTS (MVP)
+
+### 1. MASTER ORCHESTRATOR AGENT
+
+**Purpose:** Coordinates all other agents and manages job workflows
+
+**Responsibilities:**
+- Receives user job requests
+- Routes to appropriate collection agent
+- Monitors job progress
+- Handles errors and retries
+- Sends notifications
+
+**Technology:**
+- Python + LangChain
+- State machine (Finite State Automaton)
+- Redis for state persistence
+
+**Workflow:**
+```python
+class OrchestratorAgent:
+    def process_job(self, job_id):
+        # 1. Load job details
+        job = load_job(job_id)
+        
+        # 2. Validate input
+        if not self.validate_input(job):
+            return self.handle_invalid_input(job)
+        
+        # 3. Route to appropriate agent
+        agent = self.get_agent_for_source(job.source)
+        
+        # 4. Execute with monitoring
+        try:
+            result = agent.execute(job)
+            self.mark_success(job_id, result)
+        except Exception as e:
+            self.handle_failure(job_id, e)
+        
+        # 5. Post-processing
+        self.trigger_validation(job_id)
+        self.send_notification(job.user_id, 'completed')
+```
+
+---
+
+### 2. LINKEDIN SCRAPING AGENT
+
+**Purpose:** Extract professional profile data from LinkedIn
+
+**Capabilities:**
+- Profile scraping (name, title, company, location)
+- Search result scraping
+- Connection discovery
+- Rate limit management
+- Anti-detection techniques
+
+**Technology Stack:**
+- Playwright (browser automation)
+- BeautifulSoup (HTML parsing)
+- Bright Data (proxy rotation)
+- 2Captcha (CAPTCHA solving)
+
+**Agent Configuration:**
+```yaml
+agent_name: linkedin_scraper
+version: 1.0
+rate_limits:
+  requests_per_minute: 30
+  requests_per_hour: 100
+  requests_per_day: 1000
+retry_policy:
+  max_attempts: 3
+  backoff_multiplier: 2
+  initial_delay_seconds: 5
+anti_detection:
+  user_agent_rotation: true
+  cookie_management: true
+  random_delays: [2, 5]  # seconds
+  proxy_rotation: true
+extraction_fields:
+  - full_name
+  - headline
+  - current_position
+  - current_company
+  - location
+  - profile_url
+  - connections_count
+  - about_section
+```
+
+**Workflow:**
+```python
+class LinkedInAgent:
+    def __init__(self):
+        self.browser = None
+        self.proxy_manager = ProxyManager()
+        self.captcha_solver = CaptchaSolver()
+    
+    async def scrape_profile(self, profile_url):
+        # 1. Initialize browser with proxy
+        self.browser = await self.init_browser(
+            proxy=self.proxy_manager.get_next()
+        )
+        
+        # 2. Navigate to profile
+        page = await self.browser.new_page()
+        await page.goto(profile_url, wait_until='networkidle')
+        
+        # 3. Handle CAPTCHA if present
+        if await self.detect_captcha(page):
+            await self.solve_captcha(page)
+        
+        # 4. Wait for content to load
+        await page.wait_for_selector('.pv-top-card')
+        
+        # 5. Extract data
+        data = await self.extract_profile_data(page)
+        
+        # 6. Validate extracted data
+        if self.validate(data):
+            return data
+        else:
+            raise ValidationError("Incomplete data extracted")
+    
+    async def extract_profile_data(self, page):
+        return {
+            'full_name': await page.locator('.pv-top-card--name').text_content(),
+            'headline': await page.locator('.pv-top-card--headline').text_content(),
+            'current_position': await self.extract_position(page),
+            'location': await page.locator('.pv-top-card--location').text_content(),
+            'profile_url': page.url,
+            'extracted_at': datetime.now()
+        }
+```
+
+---
+
+### 3. GOOGLE MAPS SCRAPING AGENT
+
+**Purpose:** Extract business information from Google Maps
+
+**Capabilities:**
+- Search-based extraction
+- Business detail scraping
+- Review extraction (future)
+- Geolocation handling
+- Multi-location searches
+
+**Technology Stack:**
+- Playwright (browser automation)
+- Google Maps API (backup method)
+- Geopy (geocoding)
+
+**Agent Configuration:**
+```yaml
+agent_name: google_maps_scraper
+version: 1.0
+rate_limits:
+  requests_per_minute: 50
+  requests_per_hour: 200
+  requests_per_day: 2000
+search_parameters:
+  max_results: 100
+  radius_miles: 25
+  sort_by: relevance
+extraction_fields:
+  - business_name
+  - address
+  - phone
+  - website
+  - category
+  - rating
+  - review_count
+  - hours
+  - price_level
+  - coordinates
+```
+
+**Workflow:**
+```python
+class GoogleMapsAgent:
+    async def search_businesses(self, query, location):
+        # 1. Construct search URL
+        search_url = self.build_search_url(query, location)
+        
+        # 2. Load search results
+        page = await self.browser.new_page()
+        await page.goto(search_url)
+        
+        # 3. Scroll to load all results
+        await self.scroll_results(page, max_results=100)
+        
+        # 4. Extract business links
+        business_urls = await page.locator('[data-result-ad-type]').all()
+        
+        # 5. Scrape each business
+        results = []
+        for url in business_urls:
+            business_data = await self.scrape_business_detail(url)
+            results.append(business_data)
+            await asyncio.sleep(random.uniform(1, 3))  # Random delay
+        
+        return results
+    
+    async def scrape_business_detail(self, business_url):
+        page = await self.browser.new_page()
+        await page.goto(business_url)
+        
+        return {
+            'business_name': await self.extract_text(page, '[data-attrid="title"]'),
+            'address': await self.extract_text(page, '[data-attrid="kc:/location/location:address"]'),
+            'phone': await self.extract_text(page, '[data-attrid="kc:/collection/knowledge_panels/has_phone:phone"]'),
+            'website': await self.extract_href(page, '[data-attrid="kc:/collection/knowledge_panels/has_website:website"]'),
+            'rating': await self.extract_rating(page),
+            'review_count': await self.extract_review_count(page),
+            'hours': await self.extract_hours(page),
+            'extracted_at': datetime.now()
+        }
+```
+
+---
+
+### 4. DATA VALIDATION AGENT
+
+**Purpose:** Ensure extracted data meets quality standards
+
+**Capabilities:**
+- Field completeness checking
+- Format validation (emails, phones, URLs)
+- Duplicate detection
+- Data enrichment triggering
+- Quality scoring (0-100)
+
+**Validation Rules:**
+```yaml
+validation_rules:
+  linkedin_profile:
+    required_fields:
+      - full_name
+      - profile_url
+    optional_fields:
+      - headline
+      - current_position
+      - location
+    validation:
+      full_name:
+        min_length: 2
+        max_length: 100
+        pattern: "^[A-Za-z\\s'-]+$"
+      profile_url:
+        pattern: "^https://.*linkedin.com/in/[a-zA-Z0-9-]+/?$"
+      
+  google_maps_business:
+    required_fields:
+      - business_name
+      - address
+    optional_fields:
+      - phone
+      - website
+      - rating
+    validation:
+      phone:
+        pattern: "^\\+?[1-9]\\d{1,14}$"  # E.164 format
+      website:
+        pattern: "^https?://.*"
+      rating:
+        min: 0.0
+        max: 5.0
+```
+
+**Workflow:**
+```python
+class ValidationAgent:
+    def validate_record(self, record, source_type):
+        validation_result = {
+            'is_valid': True,
+            'errors': [],
+            'warnings': [],
+            'quality_score': 100
+        }
+        
+        rules = self.get_rules(source_type)
+        
+        # Check required fields
+        for field in rules.required_fields:
+            if field not in record or not record[field]:
+                validation_result['errors'].append(f"Missing required field: {field}")
+                validation_result['is_valid'] = False
+                validation_result['quality_score'] -= 30
+        
+        # Validate field formats
+        for field, value in record.items():
+            if field in rules.validation:
+                if not self.validate_field(value, rules.validation[field]):
+                    validation_result['warnings'].append(f"Invalid format for {field}")
+                    validation_result['quality_score'] -= 10
+        
+        # Check for duplicates
+        if self.is_duplicate(record):
+            validation_result['warnings'].append("Duplicate record detected")
+            validation_result['quality_score'] -= 20
+        
+        return validation_result
+```
+
+---
+
+### 5. DATA ENRICHMENT AGENT (Phase 2)
+
+**Purpose:** Enhance extracted data with additional information
+
+**Capabilities:**
+- Email finding
+- Phone number discovery
+- Company data enrichment
+- Social media profile linking
+- Technology stack detection
+
+**Enrichment Sources:**
+- Hunter.io (email finding)
+- Clearbit (company data)
+- BuiltWith (tech stack)
+- FullContact (social profiles)
+
+**Workflow:**
+```python
+class EnrichmentAgent:
+    def enrich_linkedin_profile(self, profile):
+        enriched = profile.copy()
+        
+        # Find email if not present
+        if not profile.get('email'):
+            enriched['email'] = self.find_email(
+                name=profile['full_name'],
+                company=profile['current_company']
+            )
+        
+        # Get company details
+        if profile.get('current_company'):
+            company_data = self.get_company_data(profile['current_company'])
+            enriched['company_details'] = company_data
+        
+        # Find other social profiles
+        enriched['social_profiles'] = self.find_social_profiles(
+            name=profile['full_name'],
+            company=profile['current_company']
+        )
+        
+        return enriched
+```
+
+---
+
+## CUSTOMER SUCCESS AGENTS
+
+### 6. ONBOARDING AGENT
+
+**Purpose:** Guide new users through initial setup and first success
+
+**Triggers:**
+- User signs up
+- First login
+- Inactive for 24 hours after signup
+
+**Workflow:**
+```python
+class OnboardingAgent:
+    def handle_new_user(self, user_id):
+        # 1. Send welcome email
+        self.send_email(
+            to=user_id,
+            template='welcome',
+            data={'first_name': user.first_name}
+        )
+        
+        # 2. Create in-app tour
+        self.create_tour(user_id, steps=[
+            'dashboard_overview',
+            'create_first_job',
+            'view_results',
+            'export_data'
+        ])
+        
+        # 3. Schedule follow-ups
+        self.schedule_email(user_id, 'tips_day_1', delay_hours=24)
+        self.schedule_email(user_id, 'tips_day_3', delay_hours=72)
+        
+        # 4. Track progress
+        self.monitor_milestone(user_id, 'first_job_created')
+```
+
+**Email Sequence:**
+```yaml
+onboarding_emails:
+  - day: 0
+    trigger: signup
+    subject: "Welcome to Nexus! Let's get started"
+    cta: "Create Your First Job"
+    
+  - day: 1
+    trigger: no_job_created
+    subject: "Quick tip: Create your first scraping job in 2 minutes"
+    cta: "Start Scraping Now"
+    
+  - day: 3
+    trigger: job_created_but_no_export
+    subject: "You've extracted data! Here's how to export it"
+    cta: "Export Your Data"
+    
+  - day: 7
+    trigger: no_activity_in_3_days
+    subject: "We miss you! Here's what you can do with Nexus"
+    cta: "Log Back In"
+```
+
+---
+
+### 7. SUPPORT AGENT (AI-Powered)
+
+**Purpose:** Answer customer questions automatically
+
+**Capabilities:**
+- Answer FAQs instantly
+- Troubleshoot common issues
+- Escalate to human when needed
+- Learn from interactions
+
+**Technology:**
+- OpenAI GPT-4
+- Custom knowledge base
+- Intercom integration
+
+**Knowledge Base Topics:**
+```yaml
+knowledge_base:
+  getting_started:
+    - how_to_create_job
+    - how_to_export_data
+    - understanding_rate_limits
+  
+  troubleshooting:
+    - job_failed_why
+    - data_quality_issues
+    - cant_find_data
+    
+  billing:
+    - upgrade_plan
+    - usage_limits
+    - refund_policy
+    
+  technical:
+    - api_access
+    - integrations
+    - security
+```
+
+**Agent Logic:**
+```python
+class SupportAgent:
+    def handle_message(self, user_message, context):
+        # 1. Search knowledge base
+        kb_results = self.search_knowledge_base(user_message)
+        
+        # 2. If confident match, return answer
+        if kb_results['confidence'] > 0.8:
+            return self.format_kb_answer(kb_results)
+        
+        # 3. Otherwise, use GPT-4
+        gpt_response = self.ask_gpt4(
+            message=user_message,
+            context=context,
+            knowledge_base=kb_results
+        )
+        
+        # 4. If GPT-4 not confident, escalate to human
+        if gpt_response['confidence'] < 0.6:
+            return self.escalate_to_human(user_message, context)
+        
+        return gpt_response
+```
+
+---
+
+### 8. RETENTION AGENT
+
+**Purpose:** Prevent churn and increase engagement
+
+**Capabilities:**
+- Detect at-risk users
+- Send re-engagement campaigns
+- Offer personalized incentives
+- Track win-back success
+
+**Churn Risk Indicators:**
+```yaml
+churn_signals:
+  high_risk:
+    - no_login_in_14_days: weight=30
+    - zero_jobs_in_30_days: weight=25
+    - no_export_ever: weight=20
+    - support_ticket_unsolved: weight=15
+    - usage_declined_50_percent: weight=10
+  
+  medium_risk:
+    - no_login_in_7_days: weight=15
+    - only_one_job_created: weight=10
+    - slow_adoption: weight=10
+
+thresholds:
+  high_risk: score > 50
+  medium_risk: score > 25
+```
+
+**Retention Workflow:**
+```python
+class RetentionAgent:
+    def daily_churn_check(self):
+        at_risk_users = self.identify_at_risk_users()
+        
+        for user in at_risk_users:
+            risk_level = self.calculate_risk_score(user)
+            
+            if risk_level == 'high':
+                self.send_win_back_email(user, offer='50% off next month')
+                self.schedule_call(user, priority='high')
+            
+            elif risk_level == 'medium':
+                self.send_tips_email(user, template='power_user_tips')
+                self.offer_webinar_invite(user)
+```
+
+---
+
+## BUSINESS INTELLIGENCE AGENTS
+
+### 9. ANALYTICS AGENT
+
+**Purpose:** Generate insights from product usage data
+
+**Metrics Tracked:**
+```yaml
+product_metrics:
+  user_engagement:
+    - daily_active_users
+    - weekly_active_users
+    - monthly_active_users
+    - session_duration
+    - feature_usage
+  
+  business_health:
+    - mrr
+    - churn_rate
+    - ltv
+    - cac
+    - activation_rate
+  
+  product_performance:
+    - job_success_rate
+    - data_quality_score
+    - average_job_duration
+    - export_rate
+```
+
+**Daily Report:**
+```python
+class AnalyticsAgent:
+    def generate_daily_report(self):
+        report = {
+            'date': today(),
+            'users': {
+                'new_signups': self.count_new_signups(),
+                'active': self.count_active_users(),
+                'churned': self.count_churned_users()
+            },
+            'revenue': {
+                'mrr': self.calculate_mrr(),
+                'new_mrr': self.calculate_new_mrr(),
+                'expansion_mrr': self.calculate_expansion_mrr(),
+                'churn_mrr': self.calculate_churn_mrr()
+            },
+            'product': {
+                'jobs_created': self.count_jobs_created(),
+                'success_rate': self.calculate_success_rate(),
+                'records_extracted': self.count_records_extracted()
+            },
+            'alerts': self.check_for_alerts()
+        }
+        
+        self.send_report(to=['founders@nexusdataintel.com'], report=report)
+```
+
+---
+
+### 10. PREDICTION AGENT (Phase 3)
+
+**Purpose:** Forecast business outcomes using machine learning
+
+**Predictions:**
+- Churn probability (per user)
+- MRR forecast (next 3 months)
+- Feature adoption (which users will use new feature)
+- Expansion opportunity (upsell timing)
+
+**ML Models:**
+```python
+class PredictionAgent:
+    def predict_churn(self, user_id):
+        # Features
+        features = self.extract_features(user_id)
+        
+        # Model prediction
+        churn_probability = self.churn_model.predict(features)
+        
+        # Interpretability
+        factors = self.explain_prediction(features, churn_probability)
+        
+        return {
+            'user_id': user_id,
+            'churn_probability': churn_probability,
+            'risk_level': self.categorize_risk(churn_probability),
+            'top_factors': factors,
+            'recommended_actions': self.suggest_interventions(factors)
+        }
+```
+
+---
+
+## AUTOMATED WORKFLOWS
+
+### Workflow 1: New Job Processing
+
+```
+User Creates Job
+    ↓
+Master Orchestrator Receives Request
+    ↓
+Validate Input (Orchestrator)
+    ↓
+Route to Scraping Agent (LinkedIn/Google Maps)
+    ↓
+Execute Scraping (with retries)
+    ↓
+Validate Data (Validation Agent)
+    ↓
+Store Results (Database)
+    ↓
+Send Notification (Email + In-App)
+    ↓
+Update Usage Metrics
+    ↓
+[Optional] Trigger Enrichment Agent
+    ↓
+Job Complete
+```
+
+### Workflow 2: User Onboarding
+
+```
+User Signs Up
+    ↓
+Onboarding Agent Triggered
+    ↓
+Send Welcome Email (Immediately)
+    ↓
+Create In-App Tour
+    ↓
+Monitor First Job Creation
+    ↓
+IF Job Created Within 24 Hours
+    ├─→ Send Congratulations Email
+    └─→ Track as "Activated User"
+ELSE
+    ├─→ Send Reminder Email (Day 1)
+    ├─→ Send Tips Email (Day 3)
+    └─→ Send Win-Back Email (Day 7)
+```
+
+### Workflow 3: Churn Prevention
+
+```
+Daily at 2 AM UTC
+    ↓
+Retention Agent Scans All Users
+    ↓
+Calculate Churn Risk Score (Each User)
+    ↓
+Identify At-Risk Users
+    ↓
+FOR EACH High-Risk User
+    ├─→ Send Win-Back Email
+    ├─→ Offer Discount/Incentive
+    ├─→ Schedule Founder Call
+    └─→ Track Engagement
+    
+FOR EACH Medium-Risk User
+    ├─→ Send Tips & Best Practices
+    ├─→ Highlight Unused Features
+    └─→ Invite to Webinar
+```
+
+### Workflow 4: Customer Support
+
+```
+User Sends Message
+    ↓
+Support Agent Receives
+    ↓
+Search Knowledge Base
+    ↓
+IF Confident Match (>80%)
+    └─→ Reply with KB Article
+ELSE
+    ↓
+    Ask GPT-4 with Context
+    ↓
+    IF Confident Answer (>60%)
+        └─→ Reply with GPT Answer + Ask for Feedback
+    ELSE
+        └─→ Escalate to Human Support
+            ├─→ Tag with Priority
+            ├─→ Include Full Context
+            └─→ Notify Support Team
+```
+
+---
+
+## AGENT MONITORING & OPTIMIZATION
+
+### Health Checks
+```python
+class AgentMonitor:
+    def check_agent_health(self, agent_name):
+        metrics = {
+            'success_rate': self.calculate_success_rate(agent_name),
+            'average_duration': self.get_average_duration(agent_name),
+            'error_rate': self.calculate_error_rate(agent_name),
+            'queue_length': self.get_queue_length(agent_name),
+            'last_successful_run': self.get_last_success(agent_name)
+        }
+        
+        # Alert if unhealthy
+        if metrics['success_rate'] < 0.90:
+            self.alert_team(f"{agent_name} success rate below 90%")
+        
+        if metrics['error_rate'] > 0.10:
+            self.alert_team(f"{agent_name} error rate above 10%")
+        
+        return metrics
+```
+
+### Performance Metrics
+```yaml
+agent_kpis:
+  scraping_agents:
+    - records_per_minute: target=30
+    - success_rate: target=95%
+    - average_job_duration: target=300s
+    
+  validation_agent:
+    - processing_time: target=100ms
+    - accuracy: target=99%
+    
+  support_agent:
+    - response_time: target=30s
+    - resolution_rate: target=80%
+    - escalation_rate: target=<20%
+```
+
+---
+
+**Last Updated:** December 2025  
+**Version:** 1.0  
+**Next Review:** Monthly
