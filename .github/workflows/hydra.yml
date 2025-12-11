@@ -1,0 +1,33 @@
+name: Hydra Worker (GitHub Actions)
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # Run every 30 minutes
+  workflow_dispatch: # Allow manual trigger from API
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install playwright supabase
+          playwright install chromium
+
+      - name: Run Hydra
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          WORKER_ID: "github_actions_runner"
+        run: |
+          cd worker
+          # Run for max 5 minutes to avoid timeouts/detection
+          python hydra_controller.py --timeout 300

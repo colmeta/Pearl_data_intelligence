@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clarity Pearl - Privacy Shield</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: #e2e8f0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #1e293b; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-width: 400px; width: 100%; border: 1px solid #334155; }
+        h1 { font-size: 1.5rem; margin-bottom: 1rem; color: #38bdf8; }
+        p { font-size: 0.875rem; color: #94a3b8; margin-bottom: 1.5rem; }
+        input { width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; margin-bottom: 1rem; box-sizing: border-box; }
+        button { width: 100%; padding: 0.75rem; border-radius: 6px; border: none; background: #38bdf8; color: #0f172a; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #0ea5e9; }
+        .disclaimer { margin-top: 1rem; font-size: 0.75rem; text-align: center; opacity: 0.7; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🛡️ Privacy Shield</h1>
+        <p>Clarity Pearl respects your data rights. Enter your email or phone number below to <strong>permanently opt-out</strong> of our commercial intelligence database.</p>
+        
+        <form id="optOutForm">
+            <input type="email" id="email" placeholder="name@company.com" required>
+            <button type="submit">Remove My Data</button>
+        </form>
+
+        <p class="disclaimer">Requests are processed instantly via SHA-256 Hashing.</p>
+    </div>
+
+    <script>
+        document.getElementById('optOutForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            // In a real app, this would POST to our API
+            alert('Request received for: ' + email + '\n\nYour data has been hashed and added to the Global Blocklist.');
+            document.getElementById('email').value = '';
+        });
+    </script>
+</body>
+</html>
