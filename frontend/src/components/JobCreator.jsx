@@ -33,20 +33,23 @@ export default function JobCreator({ session }) {
 
     return (
         <div className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
-            <h2 style={{ marginTop: 0, fontSize: '1.25rem', color: 'var(--primary)', marginBottom: '1.5rem' }}>
-                <span style={{ marginRight: '0.5rem' }}>⚡</span> INITIALIZE NEW HUNT
+            <h2 className="text-gradient" style={{ marginTop: 0, fontSize: '1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="animate-pulse-slow">⚡</span> INITIALIZE NEW HUNT
             </h2>
             <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                <input
-                    className="input-cyber"
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Enter Target Parameters (e.g. 'SaaS CEOs in Austin')"
-                    style={{ flex: 1, minWidth: '300px' }}
-                />
-                <button className="btn-primary" type="submit" disabled={loading} style={{ minWidth: '120px' }}>
-                    {loading ? 'Processing...' : 'EXECUTE'}
+                <div style={{ flex: 1, position: 'relative' }}>
+                    <input
+                        className="input-cyber"
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Enter Target Parameters (e.g. 'SaaS CEOs in Austin')"
+                        style={{ paddingLeft: '2.5rem' }}
+                    />
+                    <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</span>
+                </div>
+                <button className="btn-primary" type="submit" disabled={loading} style={{ minWidth: '140px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+                    {loading ? <div className="spinner"></div> : 'EXECUTE'}
                 </button>
             </form>
         </div>

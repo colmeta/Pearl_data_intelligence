@@ -19,23 +19,27 @@ export default function Login() {
     }
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-            <div className="glass-panel" style={{ padding: '3rem', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', position: 'relative', overflow: 'hidden' }}>
+            {/* Background Decor */}
+            <div style={{ position: 'absolute', width: '500px', height: '500px', background: 'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)', top: '-10%', right: '-10%', opacity: 0.2 }}></div>
+
+            <div className="glass-panel animate-slide-up" style={{ padding: '3rem', maxWidth: '400px', width: '100%', textAlign: 'center', position: 'relative', zIndex: 10 }}>
                 <div style={{ marginBottom: '2rem' }}>
-                    <h1 className="text-gradient" style={{ margin: 0, fontSize: '2.5rem' }}>CLARITY</h1>
-                    <p style={{ color: 'var(--text-muted)', letterSpacing: '2px', textTransform: 'uppercase', fontSize: '0.8rem' }}>
+                    <h1 className="text-gradient" style={{ margin: 0, fontSize: '2.5rem', letterSpacing: '-0.05em' }}>CLARITY</h1>
+                    <p style={{ color: 'var(--text-muted)', letterSpacing: '3px', textTransform: 'uppercase', fontSize: '0.7rem', marginTop: '0.5rem' }}>
                         Sensory Access Terminal
                     </p>
                 </div>
 
                 {sent ? (
-                    <div style={{ color: 'var(--success)', padding: '1rem', border: '1px solid var(--success)', borderRadius: 'var(--radius-md)', background: 'rgba(16, 185, 129, 0.1)' }}>
-                        <p><strong>Link Sent.</strong><br />Check your secure comms channel used for verification.</p>
+                    <div className="toast-success" style={{ textAlign: 'left', padding: '1rem', borderRadius: 'var(--radius-md)', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--success)' }}>
+                        <p style={{ margin: 0, color: 'var(--success)' }}><strong>Link Sent.</strong></p>
+                        <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Check your secure comms channel used for verification.</p>
                     </div>
                 ) : (
-                    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         <div style={{ textAlign: 'left' }}>
-                            <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.875rem' }}>OPERATOR ID</label>
+                            <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.75rem', fontWeight: 600, paddingLeft: '0.25rem' }}>OPERATOR ID</label>
                             <input
                                 className="input-cyber"
                                 type="email"
@@ -45,14 +49,14 @@ export default function Login() {
                                 required
                             />
                         </div>
-                        <button className="btn-primary" disabled={loading}>
-                            {loading ? 'Authenticating...' : 'Initialize Session'}
+                        <button className="btn-primary" disabled={loading} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            {loading ? <div className="spinner"></div> : 'INITIALIZE SESSION'}
                         </button>
                     </form>
                 )}
 
-                <div style={{ marginTop: '2rem', fontSize: '0.75rem', color: '#475569' }}>
-                    System Version 0.9.1-Alpha <br />
+                <div style={{ marginTop: '2.5rem', fontSize: '0.7rem', color: 'var(--text-muted)', opacity: 0.7 }}>
+                    System Version 1.0.0-RC <br />
                     Secure Connection Established
                 </div>
             </div>

@@ -44,38 +44,38 @@ export default function LiveFeed() {
     }
 
     return (
-        <div className="glass-panel" style={{ padding: '2rem' }}>
-            <h2 style={{ marginTop: 0, fontSize: '1.25rem', color: 'var(--secondary)', marginBottom: '1.5rem' }}>
-                <span style={{ marginRight: '0.5rem' }}>📡</span> LIVE FEED
+        <div className="glass-panel" style={{ padding: '2rem', height: '100%', overflowY: 'auto' }}>
+            <h2 className="text-gradient" style={{ marginTop: 0, fontSize: '1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="animate-pulse-slow">📡</span> LIVE FEED
             </h2>
 
             {jobs.length === 0 ? (
-                <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>No active signals detected.</p>
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', border: '1px dashed var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+                    <div style={{ marginBottom: '0.5rem', fontSize: '1.5rem', opacity: 0.5 }}>📶</div>
+                    <p style={{ margin: 0, fontStyle: 'italic' }}>Awaiting signals...</p>
+                </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {jobs.map((job) => (
-                        <div key={job.id} style={{
+                        <div key={job.id} className="animate-slide-up" style={{
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             padding: '1rem',
                             background: 'rgba(15, 23, 42, 0.4)',
                             borderRadius: 'var(--radius-md)',
-                            borderLeft: `3px solid ${getStatusColor(job.status)}`
+                            border: '1px solid var(--border-subtle)',
+                            transition: 'all 0.2s'
                         }}>
                             <div>
-                                <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{job.query}</div>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                                    ID: {job.id.slice(0, 8)}...
+                                <div style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.25rem' }}>
+                                    {job.query}
+                                </div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                                    ID: {job.id.slice(0, 8)}
                                 </div>
                             </div>
-                            <div style={{
-                                textTransform: 'uppercase',
-                                fontSize: '0.75rem',
-                                fontWeight: 'bold',
-                                color: getStatusColor(job.status),
-                                letterSpacing: '1px'
-                            }}>
+                            <div className={`status-badge status-${job.status}`}>
                                 {job.status}
                             </div>
                         </div>
