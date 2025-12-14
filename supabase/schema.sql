@@ -113,6 +113,11 @@ begin
 end;
 $$ language plpgsql security definer;
 
+-- Trigger to call handle_new_user whenever a new user signs up
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
 
 -- 5. INDEXES (Performance Optimization)
 create index idx_jobs_status on public.jobs(status);

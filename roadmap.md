@@ -1,4 +1,4 @@
-# NEXUS DATA INTELLIGENCE - PRODUCT ROADMAP
+# CLARITY PEARL DATA INTELLIGENCE - PRODUCT ROADMAP
 
 ## Overview
 This roadmap outlines our product development journey from MVP to market leadership over 24 months.

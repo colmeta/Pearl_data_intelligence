@@ -163,7 +163,7 @@ ALREADY GENERATING REVENUE
    ✓ 99.5% system uptime
 
 💬 Customer Testimonial:
-   "Nexus saved our sales team 100+ hours per month.
+   "CLARITY PEARL saved our sales team 100+ hours per month.
     We went from 50 leads/month to 2,000 leads/month."
     — Sarah Chen, VP Sales at TechCorp (B2B SaaS)
 
