@@ -5,8 +5,10 @@ import Login from './components/Login'
 import JobCreator from './components/JobCreator'
 import LiveFeed from './components/LiveFeed'
 import ResultsView from './components/ResultsView'
+import CompliancePortal from './pages/CompliancePortal'
 
 function App() {
+    const [path, setPath] = useState(window.location.pathname)
     const [session, setSession] = useState(null)
     const [loading, setLoading] = useState(true)
 
@@ -33,6 +35,10 @@ function App() {
         return <Login />
     }
 
+    if (path === '/compliance') {
+        return <CompliancePortal />
+    }
+
     return (
         <Layout session={session}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
@@ -44,6 +50,9 @@ function App() {
                 <div className="sidebar">
                     <LiveFeed />
                 </div>
+            </div>
+            <div style={{ textAlign: 'center', marginTop: '2rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                <a href="/compliance" style={{ color: 'inherit', textDecoration: 'none' }}>COMPLIANCE & OPT-OUT</a>
             </div>
         </Layout>
     )

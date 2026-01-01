@@ -4,6 +4,8 @@ import json
 import random
 from datetime import datetime
 from dotenv import load_dotenv
+from utils.arbiter import arbiter
+from scrapers.linkedin_engine import LinkedInEngine
 
 # Try to import Supabase, but don't fail immediately if missing (allows local dev setup)
 try:
@@ -102,29 +104,30 @@ class HydraController:
                     print(f"   [A/B Test] Group A selected. Doing Search: {target_url}")
                 
                 print(f"   -> Navigating to {target_url}...")
-                await page.goto(target_url, timeout=30000)
-                await page.wait_for_load_state("domcontentloaded")
                 
-                # Real Extraction Logic
-                title = await page.title()
-                content_snippet = (await page.content())[:200]
-                
-                print(f"   -> Page Title: {title}")
-                
-                # Basic Verification Logic: Did we get a 200 OK and valid content?
-                if title:
-                    is_verified = True
-                    verification_log = f"Successfully accessed {target_url}. Title: {title}"
-                    
-                    # Extract some basic metadata as 'enrichment'
+                if platform == 'linkedin':
+                    engine = LinkedInEngine(page)
+                    data_results = await engine.scrape(query)
+                    if data_results:
+                        # For the first version, we'll process the primary lead
+                        scraped_data = data_results[0]
+                        title = scraped_data.get('title', 'LinkedIn Profile')
+                        is_verified = True
+                    else:
+                        title = "No results found"
+                        is_verified = False
+                else:
+                    await page.goto(target_url, timeout=30000)
+                    await page.wait_for_load_state("domcontentloaded")
+                    title = await page.title()
+                    content_snippet = (await page.content())[:200]
                     scraped_data = {
                         "source_url": page.url,
                         "title": title,
                         "timestamp": datetime.now().isoformat(),
                         "meta_description": await page.evaluate("() => document.querySelector('meta[name=description]')?.content || ''")
                     }
-                else:
-                    verification_log = "Failed to extract page title."
+                    is_verified = True if title else False
                     
             except Exception as e:
                 print(f"❌ Browser Error: {e}")
@@ -133,10 +136,14 @@ class HydraController:
             finally:
                 await browser.close()
         
-        # Save results
-        self.finalize_job(job_id, scraped_data, is_verified, verification_log, platform)
+        # 1. Verification & Scoring via Arbiter
+        clarity_score, verdict = arbiter.score_lead(query, scraped_data)
+        print(f"   ⚖️  Arbiter Verdict: {verdict}")
 
-    def finalize_job(self, job_id, data, verified, log_msg, source_url):
+        # 2. Save results
+        self.finalize_job(job_id, scraped_data, is_verified, verdict, page.url, clarity_score)
+
+    def finalize_job(self, job_id, data, verified, log_msg, source_url, clarity_score=0):
         if not self.supabase:
             print(f"   [Offline] Job {job_id} done. Verified: {verified}")
             return
@@ -146,7 +153,8 @@ class HydraController:
             result_payload = {
                 "job_id": job_id,
                 "data_payload": data,
-                "verified": verified
+                "verified": verified,
+                "clarity_score": clarity_score
             }
             res_insert = self.supabase.table('results').insert(result_payload).execute()
             

@@ -15,7 +15,7 @@ export default function ResultsView() {
             .from('results')
             .select(`
                 *,
-                jobs ( query )
+                jobs ( target_query )
             `)
             .order('created_at', { ascending: false })
             .limit(50)
@@ -57,8 +57,9 @@ export default function ResultsView() {
                         <tr style={{ background: 'rgba(2, 6, 23, 0.5)', color: 'var(--text-muted)', borderBottom: '1px solid var(--border-subtle)' }}>
                             <th style={{ padding: '1rem', fontWeight: 600 }}>SOURCE QUERY</th>
                             <th style={{ padding: '1rem', fontWeight: 600 }}>PAYLOAD</th>
+                            <th style={{ padding: '1rem', fontWeight: 600 }}>CLARITY SCORE</th>
                             <th style={{ padding: '1rem', fontWeight: 600 }}>STATUS</th>
-                            <th style={{ padding: '1rem', fontWeight: 600 }}>CAPTURED</th>
+                            <th style={{ padding: '1rem', fontWeight: 600 }}>ACTION</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -82,7 +83,7 @@ export default function ResultsView() {
                                     background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'
                                 }}>
                                     <td style={{ padding: '1rem', color: 'var(--secondary)', fontWeight: 500 }}>
-                                        {r.jobs?.query || 'Unknown'}
+                                        {r.jobs?.target_query || 'Unknown'}
                                     </td>
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{
@@ -100,14 +101,38 @@ export default function ResultsView() {
                                         </div>
                                     </td>
                                     <td style={{ padding: '1rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <div style={{
+                                                width: '40px',
+                                                height: '4px',
+                                                background: 'rgba(255,255,255,0.1)',
+                                                borderRadius: '2px',
+                                                overflow: 'hidden'
+                                            }}>
+                                                <div style={{
+                                                    width: `${r.clarity_score || 0}%`,
+                                                    height: '100%',
+                                                    background: (r.clarity_score || 0) > 70 ? 'var(--primary)' : 'var(--secondary)'
+                                                }}></div>
+                                            </div>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>{r.clarity_score || 0}%</span>
+                                        </div>
+                                    </td>
+                                    <td style={{ padding: '1rem' }}>
                                         {r.verified ? (
                                             <span className="status-badge status-completed">VERIFIED</span>
                                         ) : (
                                             <span className="status-badge status-running">PENDING</span>
                                         )}
                                     </td>
-                                    <td style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                                        {new Date(r.created_at).toLocaleString()}
+                                    <td style={{ padding: '1rem' }}>
+                                        <button
+                                            className="btn-primary"
+                                            style={{ padding: '0.25rem 0.75rem', fontSize: '0.7rem' }}
+                                            onClick={() => alert(`Initiating outreach to: ${r.data_payload?.name || 'Lead'}`)}
+                                        >
+                                            OUTREACH
+                                        </button>
                                     </td>
                                 </tr>
                             ))
