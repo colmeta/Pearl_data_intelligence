@@ -51,9 +51,10 @@ We are not just scraping; we are **verifying**. We build the "Sensory Infrastruc
 *   **Output:** A legally vetted, 99.9% accurate JSON-LD packet for the client's AI Agent.
 
 ### Feature Roadmap
-*   **Phase 1 (MVP):** B2B Sales Feed + Hydra Protocol v1 (Redundant Proxies).
-*   **Phase 2:** The Arbiter Agent (Automatic Truth Verification).
-*   **Phase 3:** "Data Insurance" (Legal Indemnification for Enterprise Users).
+*   **Phase 1 (Active):** B2B Sales Feed + Hydra Protocol (Redundant Proxies).
+*   **Phase 2 (Active):** The Arbiter Agent (Automatic Truth Verification).
+*   **Phase 3 (Active):** CRM Integration & Outreach Automation Suite.
+*   **Phase 4 (Next):** "Data Insurance" (Legal Indemnification for Enterprise Users).
 
 ---
 

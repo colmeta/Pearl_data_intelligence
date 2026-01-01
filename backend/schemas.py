@@ -5,6 +5,7 @@ class JobRequest(BaseModel):
     query: str = Field(..., min_length=3, max_length=500, description="Search query (3-500 characters)")
     platform: Literal["linkedin", "google_maps"] = Field(default="linkedin", description="Target platform")
     compliance_mode: Literal["standard", "strict", "gdpr"] = Field(default="standard", description="Compliance level")
+    ab_test_group: Literal["A", "B"] = Field(default="A", description="A/B Testing Group (A=Google, B=Direct)")
     
     @validator('query')
     def validate_query(cls, v):

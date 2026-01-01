@@ -16,6 +16,11 @@ app.include_router(results.router)
 from backend.routers import opt_out
 app.include_router(opt_out.router)
 
+# CRM & Outreach Routers (Production)
+from backend.routers import crm, outreach
+app.include_router(crm.router)
+app.include_router(outreach.router)
+
 # --- ROOT ENDPOINT ---
 @app.get("/")
 def health_check():
