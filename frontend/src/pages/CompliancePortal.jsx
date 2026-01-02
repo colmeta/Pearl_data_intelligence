@@ -20,13 +20,12 @@ const CompliancePortal = () => {
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-            const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL.replace('.supabase.co', '.supabase.co/rest/v1')}/api/opt-out`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || ''}/api/opt-out/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
                 },
-                body: json.stringify({ hash: hashHex, type: 'email' }),
+                body: JSON.stringify({ hash: hashHex, type: 'email' }),
             });
 
             if (!response.ok) throw new Error('Failed to process request');
