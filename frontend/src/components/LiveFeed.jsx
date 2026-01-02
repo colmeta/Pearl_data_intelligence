@@ -69,7 +69,7 @@ export default function LiveFeed() {
                         }}>
                             <div>
                                 <div style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.25rem' }}>
-                                    {job.query}
+                                    {job.target_query}
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
                                     ID: {job.id.slice(0, 8)}

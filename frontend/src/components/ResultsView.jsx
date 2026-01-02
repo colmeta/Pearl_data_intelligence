@@ -26,6 +26,39 @@ export default function ResultsView() {
         setLoading(false)
     }
 
+    const handleOutreach = async (lead) => {
+        try {
+            const { data: { session: currentSession } } = await supabase.auth.getSession()
+            const token = currentSession?.access_token
+
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || ''}/api/outreach/send`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    target_emails: [lead.data_payload?.email],
+                    subject: `Strategic Inquiry: ${lead.data_payload?.company || 'Your Organization'}`,
+                    body_template: `Hello ${lead.data_payload?.name || 'there'},\n\nI noticed your work at ${lead.data_payload?.company || 'your company'} and wanted to reach out regarding a strategic opportunity.\n\nBest regards,\n[Clarity Intel Agent]`,
+                    sender_identity: "agent@claritypearl.com",
+                    service_provider: "smtp",
+                    api_key: "REAL_KEY_FROM_ENV" // Backend should handle this
+                })
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.detail || 'Outreach failed')
+            }
+
+            alert('Outreach sequence initiated.')
+        } catch (error) {
+            console.error('Outreach error:', error)
+            alert(error.message || 'Failed to initiate outreach.')
+        }
+    }
+
     return (
         <div className="glass-panel" style={{ padding: '2rem', marginTop: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -129,7 +162,7 @@ export default function ResultsView() {
                                         <button
                                             className="btn-primary"
                                             style={{ padding: '0.25rem 0.75rem', fontSize: '0.7rem' }}
-                                            onClick={() => alert(`Initiating outreach to: ${r.data_payload?.name || 'Lead'}`)}
+                                            onClick={() => handleOutreach(r)}
                                         >
                                             OUTREACH
                                         </button>

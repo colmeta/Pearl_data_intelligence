@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from backend.routers import jobs, results
 import os
 
@@ -6,6 +7,15 @@ app = FastAPI(
     title="Clarity Pearl API",
     description="The Sensory Nervous System for the AI Economy",
     version="1.0.0"
+)
+
+# --- CORS CONFIGURATION ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # In production, replace with specific domains
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # --- ROUTERS ---
