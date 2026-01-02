@@ -28,8 +28,23 @@ export default function JobCreator({ session }) {
             })
 
             if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.detail || 'Failed to create job')
+                // Safely parse error data
+                let errorMessage = 'Failed to create job';
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const errorData = await response.json();
+                    errorMessage = errorData.detail || errorMessage;
+                } else {
+                    const textError = await response.text();
+                    errorMessage = textError || `Error: ${response.status} ${response.statusText}`;
+                }
+                throw new Error(errorMessage);
+            }
+
+            // Also check for successful empty response
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                await response.json();
             }
 
             setQuery('')
