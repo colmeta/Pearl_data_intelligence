@@ -20,38 +20,85 @@ class LinkedInEngine:
             print(f"[{self.platform}] 📡 Navigating to: {search_url}")
             await self.page.goto(search_url, wait_until="domcontentloaded", timeout=15000)
             await asyncio.sleep(2)
-            
+
+            # 🍪 HANDLE CONSENT MODAL (Google often blocks with this)
+            try:
+                # Look for common consent buttons
+                consent_btn = await self.page.query_selector("button[aria-label='Accept all'], button:has-text('Accept all'), button:has-text('I agree')")
+                if consent_btn:
+                    print(f"[{self.platform}] 🍪 Consent modal detected. Clicking 'Accept'...")
+                    await consent_btn.click()
+                    await self.page.wait_for_load_state("domcontentloaded")
+                    await asyncio.sleep(1.5)
+            except Exception:
+                pass # Non-critical if check fails
+
             # Extract search result items
             results = []
             
-            # Try multiple selector strategies
+            # STRATEGY 1: Standard 'div.g' Container
             entries = await self.page.query_selector_all("div.g")
-            print(f"[{self.platform}] 🔍 Found {len(entries)} search results with selector 'div.g'")
             
+            # STRATEGY 2: Sokoban Container (Mobile/Tablet view)
             if len(entries) == 0:
-                # Try alternative selector
                 entries = await self.page.query_selector_all("div[data-sokoban-container]")
-                print(f"[{self.platform}] 🔍 Trying alternative selector, found {len(entries)} results")
             
+            # STRATEGY 3: Universal Link Hunt (Fallback if containers change)
             if len(entries) == 0:
-                print(f"[{self.platform}] ⚠️  No results found. Google may have changed selectors or blocked the request.")
+                print(f"[{self.platform}] ⚠️ Standard containers missing. Engaging Universal Link Hunt...")
+                links = await self.page.query_selector_all("a[href*='linkedin.com/in/']")
+                
+                # Deduplicate links
+                seen_urls = set()
+                valid_links = []
+                for link in links:
+                    href = await link.get_attribute("href")
+                    if href and href not in seen_urls:
+                        seen_urls.add(href)
+                        valid_links.append(link)
+                
+                # Create pseudo-entries for processing
+                entries = valid_links[:5] 
+                print(f"[{self.platform}] 🔍 Universal Hunt found {len(entries)} potential profile links")
+
+            if len(entries) == 0:
+                # 🛑 CRITICAL FAILURE LOGGING
+                print(f"[{self.platform}] ⚠️  NO RESULTS. BLOCKED OR LAYOUT CHANGED.")
+                page_title = await self.page.title()
+                print(f"[{self.platform}] 📸 Page Title: {page_title}")
+                # Optional: Dump html for debug (first 500 chars)
+                content = await self.page.content()
+                print(f"[{self.platform}] 📄 HTML Start: {content[:500]}...")
+                
                 print(f"[{self.platform}] 🔧 Falling back to MOCK DATA")
                 return self._get_mock_data(query)
             
             for i, entry in enumerate(entries[:5]):
                 try:
-                    title_elem = await entry.query_selector("h3")
-                    link_elem = await entry.query_selector("a")
+                    # Check if entry is a Container (div) or a direct Link (a)
+                    tag_name = await entry.evaluate("el => el.tagName")
                     
-                    if title_elem and link_elem:
-                        title_text = await title_elem.inner_text()
-                        url = await link_elem.get_attribute("href")
-                        
-                        # Try to get snippet
+                    if tag_name == "DIV":
+                        # Parse Container
+                        title_elem = await entry.query_selector("h3")
+                        link_elem = await entry.query_selector("a")
                         snippet_elem = await entry.query_selector("div.VwiC3b, div[data-sncf], div.lyLwlc")
+                        
+                        title_text = await title_elem.inner_text() if title_elem else "Unknown Profile"
+                        url = await link_elem.get_attribute("href") if link_elem else ""
                         snippet = await snippet_elem.inner_text() if snippet_elem else ""
                         
-                        # Parse name and title from the LinkedIn title format
+                    elif tag_name == "A":
+                        # Parse Direct Link (Fallback Strategy)
+                        title_text = await entry.inner_text() # The link text itself is usually the title
+                        url = await entry.get_attribute("href")
+                        snippet = "Profile found via universal search." # No snippet available for direct links easily
+                    
+                    else:
+                        continue
+
+                    if url and "linkedin.com/in/" in url:
+                        # Clean Title
                         parts = title_text.split(" - ")
                         name = parts[0] if len(parts) > 0 else "Unknown"
                         job_title = parts[1] if len(parts) > 1 else "Professional"
@@ -67,16 +114,17 @@ class LinkedInEngine:
                             "title": job_title,
                             "company": company,
                             "source_url": url,
-                            "snippet": snippet[:200],  # Limit snippet length
+                            "snippet": snippet[:200],
                             "verified": True
                         })
                         print(f"[{self.platform}] ✅ Extracted: {name} - {job_title}")
+                        
                 except Exception as parse_error:
                     print(f"[{self.platform}] ⚠️  Failed to parse result {i+1}: {parse_error}")
                     continue
             
             if len(results) == 0:
-                print(f"[{self.platform}] 📊 No valid results parsed. Falling back to MOCK DATA")
+                print(f"[{self.platform}] 📊 Parsed 0 valid profiles from {len(entries)} elements. Mocking.")
                 return self._get_mock_data(query)
             
             print(f"[{self.platform}] 📊 Total scraped: {len(results)} real results")
