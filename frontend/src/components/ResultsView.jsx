@@ -120,17 +120,22 @@ export default function ResultsView() {
                                     </td>
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{
-                                            background: '#0f172a',
-                                            padding: '0.5rem',
-                                            borderRadius: '4px',
-                                            fontFamily: 'monospace',
-                                            fontSize: '0.75rem',
-                                            whiteSpace: 'pre-wrap',
-                                            maxHeight: '100px',
-                                            overflowY: 'auto',
-                                            border: '1px solid var(--border-subtle)'
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '0.25rem',
+                                            fontSize: '0.875rem'
                                         }}>
-                                            {JSON.stringify(r.data, null, 2)}
+                                            <div style={{ fontWeight: 600, color: 'var(--primary)' }}>
+                                                {r.data_payload?.name || 'Unknown'}
+                                            </div>
+                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                                                {r.data_payload?.title || 'No title'} @ {r.data_payload?.company || 'N/A'}
+                                            </div>
+                                            {r.data_payload?.email && (
+                                                <div style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>
+                                                    📧 {r.data_payload.email}
+                                                </div>
+                                            )}
                                         </div>
                                     </td>
                                     <td style={{ padding: '1rem' }}>
