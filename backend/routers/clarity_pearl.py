@@ -2,7 +2,7 @@ from fastapi import APIRouter, Header, HTTPException, Depends
 from backend.services.supabase_client import get_supabase
 import hashlib
 
-router = APIRouter(prefix="/api/nexus", tags=["Nexus White-Label"])
+router = APIRouter(prefix="/api/clarity-pearl", tags=["Clarity Pearl White-Label"])
 
 def verify_api_key(x_api_key: str = Header(None)):
     if not x_api_key:

@@ -7,7 +7,7 @@ load_dotenv()
 
 class GeminiClient:
     """
-    NEXUS ARBITER - GEMINI INTEGRATION
+    CLARITY PEARL ARBITER - GEMINI INTEGRATION
     Optimized for Gemini 1.5 Flash-8B to maintain near-zero costs.
     """
     
@@ -57,7 +57,7 @@ class GeminiClient:
         Ask the AI to verify if the scraped data matches the query and feels 'Truthful'.
         """
         prompt = f"""
-        You are the NEXUS ARBITER, a supreme data verification agent.
+        You are the CLARITY PEARL ARBITER, a supreme data verification agent.
         
         TARGET SEARCH QUERY: {query}
         CURRENT TIME (REFERENCE): {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
@@ -95,7 +95,7 @@ class GeminiClient:
         Return ONLY the text of the message.
         """
         try:
-            response = self.model.generate_content(prompt)
+            response = await self.model.generate_content_async(prompt)
             return response.text.strip()
         except Exception as e:
             print(f"❌ Ghostwriter Error: {e}")
@@ -106,7 +106,7 @@ class GeminiClient:
         THE ORACLE: Convert NL prompt into structured mission steps.
         """
         prompt = f"""
-        You are THE ORACLE, the supreme intelligence of the DATAVAULT.
+        You are THE ORACLE, the supreme intelligence of the CLARITY PEARL.
         USER PROMPT: "{user_prompt}"
         
         TASK:

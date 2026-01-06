@@ -41,12 +41,12 @@ from backend.routers import opt_out
 app.include_router(opt_out.router)
 
 # CRM & Outreach Routers (Production)
-from backend.routers import crm, outreach, bulk, oracle, nexus, slack_relay
+from backend.routers import crm, outreach, bulk, oracle, clarity_pearl, slack_relay
 app.include_router(crm.router)
 app.include_router(outreach.router)
 app.include_router(bulk.router)
 app.include_router(oracle.router)
-app.include_router(nexus.router)
+app.include_router(clarity_pearl.router)
 app.include_router(slack_relay.router)
 
 # --- ROOT ENDPOINT ---
