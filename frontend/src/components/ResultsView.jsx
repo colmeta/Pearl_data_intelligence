@@ -41,7 +41,7 @@ export default function ResultsView() {
                 body: JSON.stringify({
                     target_emails: [lead.data_payload?.email],
                     subject: `Strategic Inquiry: ${lead.data_payload?.company || 'Your Organization'}`,
-                    body_template: `Hello ${lead.data_payload?.name || 'there'},\n\nI noticed your work at ${lead.data_payload?.company || 'your company'} and wanted to reach out regarding a strategic opportunity.\n\nBest regards,\n[Clarity Intel Agent]`,
+                    body_template: `Hello ${lead.data_payload?.name || 'there'},\n\nI noticed your work at ${lead.data_payload?.company || 'your company'} and wanted to reach out regarding a strategic opportunity.\n\nBest regards,\n[Clarity Pearl Agent]`,
                     sender_identity: "agent@claritypearl.com",
                     service_provider: "smtp",
                     api_key: "REAL_KEY_FROM_ENV" // Backend should handle this
@@ -67,7 +67,7 @@ export default function ResultsView() {
             <div className="supreme-glass" style={{ padding: '2.5rem', marginTop: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                     <h2 style={{ margin: 0, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: 800 }}>
-                        <span style={{ color: 'hsl(var(--nexus-primary))' }}>💎</span> INTELLIGENCE VAULT
+                        <span style={{ color: 'hsl(var(--pearl-primary))' }}>💎</span> INTELLIGENCE VAULT
                     </h2>
                     <button
                         onClick={fetchResults}
@@ -126,7 +126,7 @@ export default function ResultsView() {
                                                     borderRadius: '6px',
                                                     fontSize: '0.65rem',
                                                     fontWeight: 800,
-                                                    color: 'hsl(var(--nexus-primary))'
+                                                    color: 'hsl(var(--pearl-primary))'
                                                 }}>
                                                     {r.jobs?.target_platform?.toUpperCase() || 'WEB'}
                                                 </div>
@@ -147,12 +147,12 @@ export default function ResultsView() {
                                                     {r.is_high_intent && (
                                                         <span style={{
                                                             fontSize: '0.65rem',
-                                                            color: 'hsl(var(--nexus-warning))',
+                                                            color: 'hsl(var(--pearl-warning))',
                                                             fontWeight: 900,
                                                             background: 'rgba(245, 158, 11, 0.1)',
                                                             padding: '2px 6px',
                                                             borderRadius: '4px',
-                                                            border: '1px solid hsla(var(--nexus-warning), 0.3)'
+                                                            border: '1px solid hsla(var(--pearl-warning), 0.3)'
                                                         }}>
                                                             🔥 HIGH INTENT
                                                         </span>
@@ -175,7 +175,7 @@ export default function ResultsView() {
                                                             width: `${r.truth_score || r.clarity_score || 0}%`,
                                                             height: '100%',
                                                             background: (r.truth_score || r.clarity_score || 0) > 80
-                                                                ? 'linear-gradient(90deg, hsl(var(--nexus-primary)), hsl(var(--nexus-success)))'
+                                                                ? 'linear-gradient(90deg, hsl(var(--pearl-primary)), hsl(var(--pearl-success)))'
                                                                 : 'linear-gradient(90deg, var(--secondary), var(--primary))',
                                                             boxShadow: '0 0 10px rgba(6, 182, 212, 0.3)'
                                                         }}></div>
@@ -197,14 +197,14 @@ export default function ResultsView() {
                                                     <span style={{
                                                         fontSize: '0.7rem',
                                                         fontWeight: 900,
-                                                        color: r.intent_score > 70 ? 'hsl(var(--nexus-primary))' : 'rgba(255,255,255,0.4)',
+                                                        color: r.intent_score > 70 ? 'hsl(var(--pearl-primary))' : 'rgba(255,255,255,0.4)',
                                                         letterSpacing: '0.5px'
                                                     }}>
                                                         🔮 {r.oracle_signal.toUpperCase()}
                                                     </span>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                                         <div style={{ width: '40px', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
-                                                            <div style={{ width: `${r.intent_score}%`, height: '100%', background: 'hsl(var(--nexus-primary))' }}></div>
+                                                            <div style={{ width: `${r.intent_score}%`, height: '100%', background: 'hsl(var(--pearl-primary))' }}></div>
                                                         </div>
                                                         <span style={{ fontSize: '0.6rem', opacity: 0.5 }}>{r.intent_score}% INTENT</span>
                                                     </div>

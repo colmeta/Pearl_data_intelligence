@@ -43,7 +43,7 @@ export default function AnalyticsLab() {
     return (
         <div className="supreme-glass" style={{ padding: '2rem', marginTop: '2rem' }}>
             <h2 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <span style={{ color: 'hsl(var(--nexus-accent))' }}>🧪</span> ANALYTICS LAB: STRATEGY PERFORMANCE
+                <span style={{ color: 'hsl(var(--pearl-accent))' }}>🧪</span> ANALYTICS LAB: STRATEGY PERFORMANCE
             </h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
@@ -55,7 +55,7 @@ export default function AnalyticsLab() {
                         <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>{stats.countA} Missions</div>
                     </div>
                     <div style={{ height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', marginTop: '1rem', overflow: 'hidden' }}>
-                        <div style={{ width: `${stats.accuracyA}%`, height: '100%', background: 'hsl(var(--nexus-primary))' }}></div>
+                        <div style={{ width: `${stats.accuracyA}%`, height: '100%', background: 'hsl(var(--pearl-primary))' }}></div>
                     </div>
                 </div>
 
@@ -67,7 +67,7 @@ export default function AnalyticsLab() {
                         <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>{stats.countB} Missions</div>
                     </div>
                     <div style={{ height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', marginTop: '1rem', overflow: 'hidden' }}>
-                        <div style={{ width: `${stats.accuracyB}%`, height: '100%', background: 'hsl(var(--nexus-accent))' }}></div>
+                        <div style={{ width: `${stats.accuracyB}%`, height: '100%', background: 'hsl(var(--pearl-accent))' }}></div>
                     </div>
                 </div>
             </div>

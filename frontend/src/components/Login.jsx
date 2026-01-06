@@ -25,8 +25,8 @@ export default function Login() {
 
             <div className="glass-panel animate-slide-up" style={{ padding: '3rem', maxWidth: '400px', width: '100%', textAlign: 'center', position: 'relative', zIndex: 10 }}>
                 <div style={{ marginBottom: '2rem' }}>
-                    <h1 className="text-gradient" style={{ margin: 0, fontSize: '2.5rem', letterSpacing: '-0.05em' }}>CLARITY</h1>
-                    <p style={{ color: 'var(--text-muted)', letterSpacing: '3px', textTransform: 'uppercase', fontSize: '0.7rem', marginTop: '0.5rem' }}>
+                    <h1 className="text-gradient" style={{ margin: 0, fontSize: '3rem', letterSpacing: '-0.08em', fontWeight: 900 }}>CLARITY <span style={{ color: '#fff', fontWeight: 200 }}>PEARL</span></h1>
+                    <p style={{ color: 'var(--text-muted)', letterSpacing: '4px', textTransform: 'uppercase', fontSize: '0.75rem', marginTop: '0.5rem', fontWeight: 600 }}>
                         Sensory Access Terminal
                     </p>
                 </div>
@@ -43,7 +43,7 @@ export default function Login() {
                             <input
                                 className="input-cyber"
                                 type="email"
-                                placeholder="identity@clarity.ai"
+                                placeholder="identity@claritypearl.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -56,8 +56,8 @@ export default function Login() {
                 )}
 
                 <div style={{ marginTop: '2.5rem', fontSize: '0.7rem', color: 'var(--text-muted)', opacity: 0.7 }}>
-                    System Version 1.0.0-RC <br />
-                    Secure Connection Established
+                    System Version 1.0.1 (Modular) <br />
+                    Encrypted Connection (AES-256) Established
                 </div>
             </div>
         </div>

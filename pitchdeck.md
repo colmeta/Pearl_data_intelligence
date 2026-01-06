@@ -428,7 +428,7 @@ CUSTOMER LOVE
 
 💬 Customer Quotes:
 
-"Nexus replaced our entire lead gen team.
+"Clarity Pearl replaced our entire lead gen team.
 We're now 10x faster and save $8K/month."
 — John Smith, CEO, GrowthCo
 

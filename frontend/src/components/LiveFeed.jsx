@@ -36,9 +36,9 @@ export default function LiveFeed() {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'completed': return 'var(--success)'
-            case 'running': return 'var(--warning)'
-            case 'failed': return 'var(--danger)'
+            case 'completed': return 'hsl(var(--pearl-success))'
+            case 'running': return 'hsl(var(--pearl-warning))'
+            case 'failed': return 'hsl(var(--pearl-danger))'
             default: return 'var(--text-muted)'
         }
     }
@@ -47,7 +47,7 @@ export default function LiveFeed() {
         <div className="supreme-glass" style={{ padding: '2rem', height: 'calc(100vh - 200px)', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <span style={{ color: 'hsl(var(--nexus-primary))' }}>📡</span> MISSION LOG
+                    <span style={{ color: 'hsl(var(--pearl-primary))' }}>📡</span> MISSION LOG
                 </h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--success)', fontSize: '0.6rem', fontWeight: 700 }}>
                     <div className="worker-active-pulse" style={{ width: '8px', height: '8px' }}></div>

@@ -5,14 +5,14 @@ from mcp.server.fastmcp import FastMCP
 from backend.services.supabase_client import get_supabase
 from worker.utils.gemini_client import GeminiClient
 
-# Initialize FastMCP for CLARIDATA
-mcp = FastMCP("CLARIDATA")
+# Initialize FastMCP for CLARITY PEARL
+mcp = FastMCP("CLARITY PEARL")
 gemini = GeminiClient()
 
 @mcp.tool()
 async def query_vault(query: str, limit: int = 5):
     """
-    Query the CLARIDATA Intelligence Vault for existing lead data.
+    Query the CLARITY PEARL Intelligence Vault for existing lead data.
     """
     supabase = get_supabase()
     res = supabase.table('results').select('*').ilike('data_payload->>name', f'%{query}%').limit(limit).execute()
@@ -21,7 +21,7 @@ async def query_vault(query: str, limit: int = 5):
 @mcp.tool()
 async def dispatch_mission(mission_prompt: str):
     """
-    Dispatch a new autonomous research mission to the CLARIDATA mesh.
+    Dispatch a new autonomous research mission to the CLARITY PEARL mesh.
     Supports complex intents like 'Find 10 marketing managers in SF'.
     """
     # Use the existing Oracle logic via GeminiClient
@@ -32,13 +32,13 @@ async def dispatch_mission(mission_prompt: str):
     return {
         "status": "Plan Generated",
         "plan": mission_steps,
-        "instructions": "Execute these steps via the CLARIDATA dashboard to begin extraction."
+        "instructions": "Execute these steps via the CLARITY PEARL dashboard to begin extraction."
     }
 
 @mcp.tool()
 async def mesh_status():
     """
-    Get the current health and performance of the CLARIDATA Global Mesh.
+    Get the current health and performance of the CLARITY PEARL Global Mesh.
     """
     supabase = get_supabase()
     res = supabase.table('worker_status').select('*').execute()

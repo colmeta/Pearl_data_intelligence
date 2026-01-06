@@ -66,7 +66,7 @@ export default function JobCreator({ session }) {
         <div className="supreme-glass" style={{ padding: '2.5rem', marginBottom: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>
-                    <span style={{ color: 'hsl(var(--nexus-primary))' }}>⚡</span> INITIALIZE SCOUT
+                    <span style={{ color: 'hsl(var(--pearl-primary))' }}>⚡</span> INITIALIZE SCOUT
                 </h2>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     {platforms.map(p => (
@@ -76,7 +76,7 @@ export default function JobCreator({ session }) {
                             style={{
                                 padding: '0.5rem 1rem',
                                 borderRadius: '12px',
-                                background: platform === p.id ? 'hsl(var(--nexus-primary))' : 'rgba(255,255,255,0.05)',
+                                background: platform === p.id ? 'hsl(var(--pearl-primary))' : 'rgba(255,255,255,0.05)',
                                 color: platform === p.id ? '#000' : '#fff',
                                 border: 'none',
                                 cursor: 'pointer',
@@ -100,9 +100,9 @@ export default function JobCreator({ session }) {
                         style={{
                             padding: '0.5rem 1rem',
                             borderRadius: '12px',
-                            background: boostMode ? 'hsl(var(--nexus-warning))' : 'rgba(255,255,255,0.05)',
+                            background: boostMode ? 'hsl(var(--pearl-warning))' : 'rgba(255,255,255,0.05)',
                             color: boostMode ? '#000' : 'rgba(255,255,255,0.4)',
-                            border: '1px solid ' + (boostMode ? 'hsl(var(--nexus-warning))' : 'rgba(255,255,255,0.1)'),
+                            border: '1px solid ' + (boostMode ? 'hsl(var(--pearl-warning))' : 'rgba(255,255,255,0.1)'),
                             cursor: 'pointer',
                             fontSize: '0.7rem',
                             fontWeight: 900,
@@ -180,7 +180,7 @@ export default function JobCreator({ session }) {
                         fontSize: '0.9rem',
                         fontWeight: 900,
                         letterSpacing: '1px',
-                        background: boostMode ? 'linear-gradient(135deg, hsl(var(--nexus-primary)), hsl(var(--nexus-accent)))' : 'var(--nexus-primary)'
+                        background: boostMode ? 'linear-gradient(135deg, hsl(var(--pearl-primary)), hsl(var(--pearl-accent)))' : 'var(--pearl-primary)'
                     }}
                 >
                     {loading ? <div className="spinner"></div> : 'LAUNCH MISSION'}
@@ -250,7 +250,7 @@ export default function JobCreator({ session }) {
                 <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
                     Shield: Stealth v2.4 (Residential)
                 </div>
-                <div style={{ fontSize: '0.65rem', color: boostMode ? 'hsl(var(--nexus-warning))' : 'rgba(255,255,255,0.3)', fontWeight: 700 }}>
+                <div style={{ fontSize: '0.65rem', color: boostMode ? 'hsl(var(--pearl-warning))' : 'rgba(255,255,255,0.3)', fontWeight: 700 }}>
                     {boostMode ? '⚠️ BOOST MODE: OVERNIGHT PRIORITY HARVESTING ACTIVE' : 'STANDARD PRIORITY'}
                 </div>
             </div>

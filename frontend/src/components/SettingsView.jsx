@@ -47,7 +47,7 @@ export default function SettingsView({ session }) {
         // In a real app, the backend would handle this to hash the key.
         // For MVP, we'll call our dispatchMission style endpoint if we had one for keys.
         // But for now, let's just alert that the backend needs to handle the hashing.
-        alert(`NEXUS API KEY GENERATED:\n\n${newKey}\n\nCOPY THIS NOW. It will not be shown again.`)
+        alert(`CLARITY PEARL API KEY GENERATED:\n\n${newKey}\n\nCOPY THIS NOW. It will not be shown again.`)
         setSaving(false)
     }
 
@@ -56,7 +56,7 @@ export default function SettingsView({ session }) {
     return (
         <div className="supreme-glass" style={{ padding: '2.5rem', marginTop: '2rem' }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '2rem', color: '#fff' }}>
-                ⚙️ CLARIDATA COMMAND CENTER
+                ⚙️ CLARITY PEARL COMMAND CENTER
             </h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
@@ -71,14 +71,14 @@ export default function SettingsView({ session }) {
                             Credits remaining for {org?.name} ({org?.plan_tier.toUpperCase()})
                         </div>
                         <div style={{ marginTop: '1.5rem', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                            <div style={{ width: `${(org?.credits_used / org?.credits_monthly) * 100}%`, height: '100%', background: 'hsl(var(--nexus-primary))' }}></div>
+                            <div style={{ width: `${(org?.credits_used / org?.credits_monthly) * 100}%`, height: '100%', background: 'hsl(var(--pearl-primary))' }}></div>
                         </div>
                     </div>
                 </div>
 
                 {/* API & Integrity */}
                 <div>
-                    <h3 style={{ fontSize: '0.8rem', opacity: 0.5, letterSpacing: '2px', marginBottom: '1.5rem' }}>NEXUS API (WHITE-LABEL)</h3>
+                    <h3 style={{ fontSize: '0.8rem', opacity: 0.5, letterSpacing: '2px', marginBottom: '1.5rem' }}>CLARITY PEARL API (WHITE-LABEL)</h3>
                     <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                         <input
                             readOnly

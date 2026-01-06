@@ -67,8 +67,7 @@ async def upload_csv(file: UploadFile = File(...), user: dict = Depends(get_curr
         if not jobs_to_insert:
              raise HTTPException(status_code=400, detail="No valid rows found in CSV")
 
-        # Batch Insert (Supabase/PostgREST supports list insert)
-        # Note: Large files might need chunking, but for MVP <1000 rows this is fine.
+        # Batch Insert
         res = supabase.table('jobs').insert(jobs_to_insert).execute()
         
         return {
@@ -76,11 +75,14 @@ async def upload_csv(file: UploadFile = File(...), user: dict = Depends(get_curr
             "message": f"Successfully queued {len(jobs_to_insert)} verification jobs.",
             "jobs_created": len(jobs_to_insert)
         }
+    except Exception as e:
+        print(f"❌ CSV upload failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/audit")
 async def audit_csv(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
     """
-    REALITY CHECK - APOLLO/ZOOMINFO AUDIT
+    REALITY CHECK - CLARITY PEARL AUDIT
     Specialized upload for existing lead lists to verify accuracy.
     """
     if not file.filename.endswith('.csv'):
@@ -97,11 +99,7 @@ async def audit_csv(file: UploadFile = File(...), user: dict = Depends(get_curre
         jobs_to_insert = []
         user_id = user.get("id")
         
-        # Apollo standard header is often 'First Name', 'Last Name', 'Company', 'Email'
-        # or exactly 'LinkedIn URL'
         for row in reader:
-            # Priority 1: LinkedIn URL (Most accurate for verification)
-            # Priority 2: Full Name + Company
             target = row.get('LinkedIn URL') or row.get('Contact LinkedIn URL')
             if not target:
                 name = f"{row.get('First Name', '')} {row.get('Last Name', '')}".strip()
@@ -116,7 +114,7 @@ async def audit_csv(file: UploadFile = File(...), user: dict = Depends(get_curre
                 "user_id": user_id,
                 "org_id": user.get("org_id"),
                 "target_query": target,
-                "target_platform": "linkedin", # Force LinkedIn for audit accuracy
+                "target_platform": "linkedin", 
                 "compliance_mode": "strict",
                 "status": "queued",
                 "ab_test_group": "A",
@@ -124,7 +122,7 @@ async def audit_csv(file: UploadFile = File(...), user: dict = Depends(get_curre
             })
             
         if not jobs_to_insert:
-             raise HTTPException(status_code=400, detail="No valid leads found for audit. Ensure headers like 'LinkedIn URL' or 'First Name' exist.")
+             raise HTTPException(status_code=400, detail="No valid leads found for audit.")
 
         supabase.table('jobs').insert(jobs_to_insert).execute()
         

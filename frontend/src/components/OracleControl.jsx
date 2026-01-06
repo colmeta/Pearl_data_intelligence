@@ -55,7 +55,7 @@ export default function OracleControl() {
     return (
         <div className="supreme-glass" style={{ padding: '1.5rem', marginTop: '2rem', minHeight: '400px', display: 'flex', flexDirection: 'column' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ color: 'hsl(var(--nexus-primary))' }}>🔮</span> CLARIDATA MISSION CONTROL
+                <span style={{ color: 'hsl(var(--pearl-primary))' }}>🔮</span> CLARITY PEARL MISSION CONTROL
             </h2>
 
             <div
@@ -78,10 +78,8 @@ export default function OracleControl() {
                 )}
                 {history.map((h, i) => (
                     <div key={i} style={{ marginBottom: '1rem', animation: 'fadeIn 0.3s ease-out' }}>
-                        <span style={{ color: h.role === 'user' ? 'hsl(var(--nexus-accent))' : 'hsl(var(--nexus-primary))', fontWeight: 900 }}>
-                            {h.role === 'user' ? '> USER:' : '>> ORACLE:'}
-                        </span>
-                        <div style={{ color: h.isError ? 'hsl(var(--nexus-error))' : '#fff', marginTop: '0.25rem', whiteSpace: 'pre-wrap' }}>
+                        {h.role === 'user' ? '> USER:' : '>> ORACLE:'}
+                        <div style={{ color: h.isError ? 'hsl(var(--pearl-danger))' : '#fff', marginTop: '0.25rem', whiteSpace: 'pre-wrap' }}>
                             {h.content}
                         </div>
                         {h.details && (
@@ -94,8 +92,8 @@ export default function OracleControl() {
                     </div>
                 ))}
                 {loading && (
-                    <div style={{ color: 'hsl(var(--nexus-primary))', animation: 'pulse 1s infinite' }}>
-                        >> ORACLE IS INTERPRETING...
+                    <div style={{ color: 'hsl(var(--pearl-primary))', animation: 'pulse 1s infinite' }}>
+                        {">> ORACLE IS INTERPRETING..."}
                     </div>
                 )}
             </div>
