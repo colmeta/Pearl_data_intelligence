@@ -44,7 +44,6 @@ export default function LiveFeed() {
     }
 
     return (
-    return (
         <div className="supreme-glass" style={{ padding: '2rem', height: 'calc(100vh - 200px)', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
