@@ -53,7 +53,7 @@ export default function OracleControl() {
     }
 
     return (
-        <div className="supreme-glass" style={{ padding: '1.5rem', marginTop: '2rem', minHeight: '400px', display: 'flex', flexDirection: 'column' }}>
+        <div className="supreme-glass oracle-container" style={{ padding: '1.5rem', marginTop: '2rem', minHeight: '400px', display: 'flex', flexDirection: 'column' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <span style={{ color: 'hsl(var(--pearl-primary))' }}>🔮</span> CLARITY PEARL MISSION CONTROL
             </h2>

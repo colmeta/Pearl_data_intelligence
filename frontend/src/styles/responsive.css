@@ -124,6 +124,8 @@ body {
     /* Oracle Control */
     .oracle-container {
         min-height: 300px !important;
+        overflow-x: hidden;
+        padding: 0.75rem !important;
     }
 
     .oracle-history {

@@ -44,13 +44,44 @@ alter table public.results
 add column if not exists predictive_growth_score int default 0,
 add column if not exists reasoning text,
 add column if not exists priority_score int default 50,
+add column if not exists intent_score int default 0,
 add column if not exists auto_routed_to uuid,
 add column if not exists routing_reason text;
+
+alter table public.jobs
+add column if not exists priority int default 0;
 
 create index if not exists idx_results_predictive_growth on public.results(predictive_growth_score desc);
 create index if not exists idx_results_priority on public.results(priority_score desc) where verified = true;
 create index if not exists idx_results_intent_score on public.results(intent_score desc) where verified = true;
 create index if not exists idx_jobs_status_priority on public.jobs(status, priority desc);
+
+-- ==========================================
+-- 2a. JOBS & WORKER FOUNDATIONS
+-- ==========================================
+
+DO $$ begin
+    create type public.compliance_level as enum ('strict', 'standard', 'loose');
+exception
+    when duplicate_object then null;
+end $$;
+
+create table if not exists public.jobs (
+    id uuid primary key default gen_random_uuid(),
+    created_at timestamptz default now(),
+    status text default 'queued',
+    priority int default 0
+);
+
+alter table public.jobs 
+add column if not exists target_query text,
+add column if not exists target_platform text,
+add column if not exists compliance_mode public.compliance_level default 'standard',
+add column if not exists search_metadata jsonb default '{}',
+add column if not exists worker_id text,
+add column if not exists started_at timestamptz;
+
+create index if not exists idx_jobs_worker_id on public.jobs(worker_id);
 
 
 -- ==========================================
