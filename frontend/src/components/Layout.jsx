@@ -7,7 +7,7 @@ export default function Layout({ children, session }) {
     }
 
     return (
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '1rem 2rem' }}>
+        <div className="layout-container" style={{ maxWidth: '1400px', margin: '0 auto', padding: '1rem 2rem' }}>
             <header
                 className="supreme-glass"
                 style={{
@@ -19,16 +19,20 @@ export default function Layout({ children, session }) {
                     marginTop: '1rem'
                 }}
             >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    <img src="/logo.png" style={{ height: '45px', filter: 'drop-shadow(0 0 10px rgba(0,255,255,0.3))' }} />
+                <div className="logo-section" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                    <img src="/logo.png" alt="Clarity Pearl" style={{ height: '45px', filter: 'drop-shadow(0 0 10px rgba(0,255,255,0.3))' }} />
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <span style={{ fontWeight: 800, fontSize: '1.4rem', letterSpacing: '-0.5px', color: 'hsl(var(--pearl-primary))' }}>CLARITY <span style={{ color: '#fff', fontWeight: 300 }}>PEARL</span></span>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', letterSpacing: '2px', textTransform: 'uppercase' }}>Always-On Intelligence</span>
+                        <span className="desktop-only" style={{ fontSize: '0.65rem', color: 'var(--text-muted)', letterSpacing: '2px', textTransform: 'uppercase' }}>Always-On Intelligence</span>
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-                    <div style={{ textAlign: 'right' }}>
+                <div className="user-section" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                    <div className="desktop-hidden mobile-stack" style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>{session?.user?.email?.split('@')[0]}</div>
+                        <div style={{ fontSize: '0.65rem', color: 'var(--success)', fontWeight: 700 }}>VERIFIED AGENT</div>
+                    </div>
+                    <div className="mobile-hidden" style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>{session?.user?.email?.split('@')[0]}</div>
                         <div style={{ fontSize: '0.65rem', color: 'var(--success)', fontWeight: 700 }}>VERIFIED AGENT</div>
                     </div>
@@ -37,7 +41,7 @@ export default function Layout({ children, session }) {
                         className="btn-primary"
                         style={{ padding: '0.5rem 1.25rem', fontSize: '0.7rem', borderRadius: '12px' }}
                     >
-                        SECURE LOGOUT
+                        <span className="desktop-only">SECURE </span>LOGOUT
                     </button>
                 </div>
             </header>
@@ -60,11 +64,11 @@ export default function Layout({ children, session }) {
                 <div style={{ display: 'flex', gap: '2rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <div style={{ width: '6px', height: '6px', background: 'var(--success)', borderRadius: '50%' }}></div>
-                        SENTRY: NOMINAL
+                        <span className="desktop-only">SENTRY: </span>NOMINAL
                     </div>
-                    <div>ENCRYPTION: AES-256</div>
+                    <div className="desktop-only">ENCRYPTION: AES-256</div>
                 </div>
-                <div>© 2026 CLARITY PEARL | SUPREME EDITION</div>
+                <div className="desktop-only">© 2026 CLARITY PEARL | SUPREME EDITION</div>
                 <div style={{ color: 'hsl(var(--pearl-primary))', fontWeight: 700 }}>LATENCY: 8ms</div>
             </footer>
         </div>

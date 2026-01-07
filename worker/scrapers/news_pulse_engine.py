@@ -44,4 +44,10 @@ class NewsPulseEngine:
 
         except Exception as e:
             print(f"[{self.platform}] ❌ News Pulse Failure: {e}")
-            return []
+            return [{
+                "title": f"News Briefing: {query}",
+                "source_url": f"https://news.google.com/search?q={query}",
+                "verified": False,
+                "snippet": "Real-time news feed disrupted. Manual briefing recommended.",
+                "error": str(e)
+            }]

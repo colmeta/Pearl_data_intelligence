@@ -16,21 +16,54 @@ function App() {
     const [view, setView] = useState('vault') // 'vault' or 'settings'
     const [session, setSession] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [showAdvanced, setShowAdvanced] = useState(false)
+    const [orgSetupDone, setOrgSetupDone] = useState(false)
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session)
             setLoading(false)
+
+            // Auto-setup organization if user has none
+            if (session) {
+                checkAndSetupOrganization(session)
+            }
         })
 
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session)
+            if (session) {
+                checkAndSetupOrganization(session)
+            }
         })
 
         return () => subscription.unsubscribe()
     }, [])
+
+    const checkAndSetupOrganization = async (session) => {
+        if (!session || orgSetupDone) return
+
+        try {
+            const token = session.access_token
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || ''}/api/organizations/auto-setup`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+
+            if (response.ok) {
+                const data = await response.json()
+                console.log('Organization setup:', data.message)
+                setOrgSetupDone(true)
+            }
+        } catch (error) {
+            console.error('Organization setup error:', error)
+        }
+    }
 
     if (loading) {
         return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>INITIALIZING...</div>
@@ -46,7 +79,7 @@ function App() {
 
     return (
         <Layout session={session}>
-            <div style={{ marginBottom: '2rem', display: 'flex', gap: '2rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ marginBottom: '2rem', display: 'flex', gap: '2rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }} className="tab-navigation">
                 <button
                     onClick={() => setView('vault')}
                     style={{
@@ -68,12 +101,88 @@ function App() {
             </div>
 
             {view === 'vault' ? (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
+                <div style={{ display: 'grid', gap: '2rem' }} className="main-grid">
                     <div className="main-content">
-                        <JobCreator session={session} />
+                        {/* ORACLE CONTROL - PRIMARY INTERFACE */}
+                        <div style={{ marginBottom: '1rem' }}>
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '0.5rem',
+                                flexWrap: 'wrap',
+                                gap: '0.5rem'
+                            }}>
+                                <h1 style={{
+                                    fontSize: '1.1rem',
+                                    fontWeight: 900,
+                                    color: 'rgba(255,255,255,0.5)',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '2px',
+                                    margin: 0
+                                }}>
+                                    What do you need today?
+                                </h1>
+                                <button
+                                    onClick={() => setShowAdvanced(!showAdvanced)}
+                                    style={{
+                                        background: 'none',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        color: 'rgba(255,255,255,0.4)',
+                                        padding: '0.5rem 1rem',
+                                        borderRadius: '8px',
+                                        fontSize: '0.7rem',
+                                        cursor: 'pointer',
+                                        fontWeight: 600,
+                                        transition: 'all 0.3s'
+                                    }}
+                                >
+                                    {showAdvanced ? '← SIMPLE MODE' : 'ADVANCED OPTIONS →'}
+                                </button>
+                            </div>
+                            <p style={{
+                                fontSize: '0.75rem',
+                                color: 'rgba(255,255,255,0.3)',
+                                marginBottom: '1.5rem',
+                                lineHeight: '1.6'
+                            }}>
+                                Just type your request naturally. Our AI determines the best platforms to search automatically.
+                                <br />
+                                <span style={{ color: 'hsl(var(--pearl-primary))', fontWeight: 600 }}>Examples:</span> "Find tech CEOs in Austin" • "Scout real estate investors in Miami" • "Hiring managers at Y Combinator startups"
+                            </p>
+                        </div>
+
                         <OracleControl />
-                        <AnalyticsLab />
-                        <ResultsView />
+
+                        {/* ADVANCED MODE - Hidden by default */}
+                        {showAdvanced && (
+                            <div style={{
+                                marginTop: '2rem',
+                                padding: '1.5rem',
+                                borderTop: '1px solid rgba(255,255,255,0.05)',
+                                animation: 'fadeIn 0.3s ease-out'
+                            }}>
+                                <h3 style={{
+                                    fontSize: '0.9rem',
+                                    fontWeight: 800,
+                                    color: 'rgba(255,255,255,0.6)',
+                                    marginBottom: '1rem',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '1.5px'
+                                }}>
+                                    ⚙️ Power User Controls
+                                </h3>
+                                <JobCreator session={session} />
+                            </div>
+                        )}
+
+                        <div style={{ marginTop: '2rem' }}>
+                            <AnalyticsLab />
+                        </div>
+
+                        <div style={{ marginTop: '2rem' }}>
+                            <ResultsView />
+                        </div>
                     </div>
 
                     <div className="sidebar">

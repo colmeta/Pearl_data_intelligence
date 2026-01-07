@@ -9,6 +9,7 @@ class TikTokEngine:
     
     def __init__(self, page):
         self.page = page
+        self.platform = "tiktok"
 
     async def scrape(self, query):
         """
@@ -60,5 +61,11 @@ class TikTokEngine:
             }]
 
         except Exception as e:
-            print(f"❌ Scout-01: TikTok Infiltration Failed: {e}")
-            return []
+            print(f"[{self.platform}] ❌ Scout-01: TikTok Infiltration Failed: {e}")
+            return [{
+                "name": f"TikTok Trend: {query}",
+                "source_url": "https://www.tiktok.com/search",
+                "verified": False,
+                "snippet": "Trend analysis interrupted. Network restriction detected.",
+                "error": str(e)
+            }]

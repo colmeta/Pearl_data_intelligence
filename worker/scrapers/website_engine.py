@@ -62,4 +62,10 @@ class WebsiteEngine:
 
         except Exception as e:
             print(f"[{self.platform}] ❌ Website Visit Error: {e}")
-            return []
+            return [{
+                "title": "Site Access Failed",
+                "source_url": url,
+                "verified": False,
+                "snippet": f"Could not access {url}. Target might be protected.",
+                "error": str(e)
+            }]

@@ -28,8 +28,14 @@ class BaseDorkEngine:
         results = await self._search_ddg(query, site_filter)
         if results: return results
 
-        print(f"[{self.platform}] 🔧 All strategies exhausted. No results.")
-        return []
+        print(f"[{self.platform}] 🔧 All strategies exhausted. Returning fallback.")
+        return [{
+            "name": f"Search: {query}",
+            "company": self.platform.capitalize(),
+            "source_url": f"https://www.google.com/search?q={query}",
+            "verified": False,
+            "snippet": "No direct leads found via automated channels. Manual check recommended."
+        }]
 
     async def _search_google(self, query, site_filter):
         try:

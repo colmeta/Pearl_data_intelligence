@@ -41,5 +41,12 @@ class CommerceWatchEngine:
         # 2. Visual / OCR Mock (To be replaced by real AI-vision in Phase 3)
         # mission: "See" the product if it's an image-only Shopify store.
         
-        print(f"[{self.platform}] ✅ Captured {len(results)} commercial signals.")
+        if not results:
+             return [{
+                "name": "Market Scan Fallback",
+                "price": "N/A",
+                "source": "amazon",
+                "verified": False,
+                "snippet": f"Market scan for {query} yield no direct results. Manual check recommended."
+             }]
         return results

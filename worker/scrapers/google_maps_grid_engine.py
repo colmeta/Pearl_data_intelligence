@@ -9,6 +9,7 @@ class GoogleMapsGridEngine:
     
     def __init__(self, page):
         self.page = page
+        self.platform = "google_maps_grid"
 
     async def scrape(self, query, location_grid=None):
         """
@@ -70,5 +71,11 @@ class GoogleMapsGridEngine:
             }]
 
         except Exception as e:
-            print(f"❌ Scout-01: Google Maps Grid Failure: {e}")
-            return []
+            print(f"[{self.platform}] ❌ Scout-01: Google Maps Grid Failure: {e}")
+            return [{
+                "name": "Grid Search Fallback",
+                "address": query,
+                "verified": False,
+                "snippet": "Grid search encountered an error. Manual verification advised.",
+                "error": str(e)
+            }]

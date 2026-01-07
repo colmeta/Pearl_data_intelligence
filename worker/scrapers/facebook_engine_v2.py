@@ -9,6 +9,7 @@ class FacebookEngineV2:
     
     def __init__(self, page):
         self.page = page
+        self.platform = "facebook"
 
     async def scrape(self, query):
         """
@@ -55,5 +56,11 @@ class FacebookEngineV2:
             }]
 
         except Exception as e:
-            print(f"❌ Scout-01: Facebook Infiltration Failed: {e}")
-            return []
+            print(f"[{self.platform}] ❌ Scout-01: Facebook Infiltration Failed: {e}")
+            return [{
+                "name": f"Facebook Search: {query}",
+                "source_url": "https://www.facebook.com/search/results",
+                "verified": False,
+                "snippet": "Social Graph Access Restricted. Visual Check Required.",
+                "error": str(e)
+            }]

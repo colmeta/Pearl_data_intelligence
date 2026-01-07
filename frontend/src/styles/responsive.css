@@ -1,0 +1,318 @@
+/* 
+  RESPONSIVE DESIGN SYSTEM
+  Mobile-First Approach with Touch-Friendly Interactions
+*/
+
+/* ===== BREAKPOINTS ===== */
+/* Mobile: 320px - 767px */
+/* Tablet: 768px - 1023px */
+/* Desktop: 1024px+ */
+
+/* ===== BASE RESPONSIVE UTILITIES ===== */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    overflow-x: hidden;
+}
+
+body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+/* ===== MOBILE-FIRST: Default Mobile Styles ===== */
+@media (max-width: 767px) {
+
+    /* Layout Container */
+    .layout-container {
+        padding: 0.75rem !important;
+        max-width: 100vw;
+    }
+
+    /* Header Responsive */
+    header.supreme-glass {
+        flex-direction: column !important;
+        gap: 1rem !important;
+        padding: 1rem !important;
+        align-items: stretch !important;
+    }
+
+    header .logo-section {
+        flex-direction: row !important;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    header .user-section {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 1rem;
+    }
+
+    /* Main Grid: Stack Vertically on Mobile */
+    .main-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    .sidebar {
+        order: 2;
+        max-height: 400px;
+    }
+
+    .main-content {
+        order: 1;
+    }
+
+    /* Glass Cards */
+    .supreme-glass {
+        padding: 1rem !important;
+        border-radius: 16px !important;
+        margin-bottom: 1rem;
+    }
+
+    /* Platform Selector: Stack Vertically */
+    .platform-selector {
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
+        justify-content: flex-start !important;
+    }
+
+    .platform-selector button {
+        flex: 1 1 calc(50% - 0.25rem);
+        min-width: 120px;
+        padding: 0.75rem 0.5rem !important;
+        font-size: 0.7rem !important;
+    }
+
+    /* Advanced Controls: Stack Vertically */
+    .advanced-controls {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        align-items: stretch !important;
+    }
+
+    .advanced-controls button,
+    .advanced-controls select {
+        width: 100% !important;
+        text-align: center;
+    }
+
+    /* Search Input */
+    .search-container {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+
+    .search-container input {
+        font-size: 0.9rem !important;
+        padding: 1rem !important;
+        padding-left: 3rem !important;
+    }
+
+    .search-container button {
+        width: 100% !important;
+        min-width: unset !important;
+        padding: 1rem !important;
+    }
+
+    /* Oracle Control */
+    .oracle-container {
+        min-height: 300px !important;
+    }
+
+    .oracle-history {
+        max-height: 250px !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* Tab Navigation */
+    .tab-navigation {
+        gap: 1rem !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-navigation button {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    /* Footer */
+    footer {
+        flex-direction: column !important;
+        gap: 1rem !important;
+        text-align: center !important;
+    }
+
+    footer>div {
+        width: 100% !important;
+    }
+
+    /* Touch Targets */
+    button,
+    a,
+    input[type="button"],
+    input[type="submit"] {
+        min-height: 44px;
+        /* iOS minimum touch target */
+        min-width: 44px;
+    }
+
+    /* Hide certain elements on mobile */
+    .desktop-only {
+        display: none !important;
+    }
+
+    /* Mobile-specific utilities */
+    .mobile-stack {
+        flex-direction: column !important;
+    }
+}
+
+/* ===== TABLET: 768px - 1023px ===== */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .layout-container {
+        padding: 1.5rem;
+        max-width: 100vw;
+    }
+
+    .main-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem;
+    }
+
+    .platform-selector {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .platform-selector button {
+        flex: 0 1 auto;
+    }
+
+    header.supreme-glass {
+        padding: 1.25rem 1.5rem !important;
+    }
+
+    .supreme-glass {
+        padding: 1.5rem !important;
+    }
+}
+
+/* ===== DESKTOP: 1024px+ ===== */
+@media (min-width: 1024px) {
+    .layout-container {
+        max-width: 1400px;
+        padding: 1rem 2rem;
+    }
+
+    .main-grid {
+        grid-template-columns: 1fr 350px;
+        gap: 2rem;
+    }
+
+    .mobile-only {
+        display: none !important;
+    }
+}
+
+/* ===== LARGE DESKTOP: 1440px+ ===== */
+@media (min-width: 1440px) {
+    .layout-container {
+        max-width: 1600px;
+    }
+
+    .main-grid {
+        grid-template-columns: 1fr 400px;
+        gap: 2.5rem;
+    }
+}
+
+/* ===== TOUCH DEVICES ===== */
+@media (hover: none) and (pointer: coarse) {
+
+    /* Increase touch targets */
+    button {
+        padding: 0.75rem 1.25rem;
+        min-height: 48px;
+    }
+
+    input,
+    select,
+    textarea {
+        min-height: 48px;
+        font-size: 16px;
+        /* Prevents iOS zoom on focus */
+    }
+
+    /* Remove hover effects on touch devices */
+    .supreme-glass:hover {
+        border-color: var(--glass-border);
+        box-shadow: var(--glass-shadow);
+    }
+
+    .lead-card:hover {
+        transform: none;
+    }
+}
+
+/* ===== REDUCE MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ===== DARK MODE PREFERENCE ===== */
+@media (prefers-color-scheme: light) {
+    /* User prefers light mode - but we're dark-first! */
+    /* Add overrides only if you want to support light mode */
+}
+
+/* ===== UTILITY CLASSES ===== */
+.container-fluid {
+    width: 100%;
+    max-width: 100vw;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.no-scroll-x {
+    overflow-x: hidden;
+}
+
+.touch-target {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+.mobile-hidden {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .mobile-hidden {
+        display: block;
+    }
+}
+
+.desktop-hidden {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .desktop-hidden {
+        display: block;
+    }
+}

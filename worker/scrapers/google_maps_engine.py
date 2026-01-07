@@ -122,9 +122,15 @@ class GoogleMapsEngine:
             else:
                  return await self._scrape_single_result()
 
-        except Exception as e:
+    except Exception as e:
             print(f"[{self.platform}] ❌ Error: {e}")
-            return []
+            return [{
+                "name": "Google Maps Query",
+                "source_url": url,
+                "verified": False,
+                 "snippet": f"Search initiated for: {query}. Visual verification required.",
+                 "error": str(e)
+            }]
 
     async def _scrape_single_result(self):
         """Fallback for when Maps redirects directly to a single result."""
@@ -181,5 +187,13 @@ class GoogleMapsEngine:
             }]
             
         except Exception as e:
-             print(f"[{self.platform}] ❌ Single Result Error: {e}")
-             return []
+            print(f"[{self.platform}] ❌ Single Result Error: {e}")
+            # Fallback to avoid zero results
+            return [{
+                 "name": "Google Maps Search",
+                 "address": "Unknown Location",
+                 "source_url": self.page.url,
+                 "verified": False,
+                 "snippet": f"Visual confirmation required for: {self.page.url}",
+                 "error": str(e)
+            }]

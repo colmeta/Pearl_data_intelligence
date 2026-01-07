@@ -63,12 +63,12 @@ export default function JobCreator({ session }) {
     }
 
     return (
-        <div className="supreme-glass" style={{ padding: '2.5rem', marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>
-                    <span style={{ color: 'hsl(var(--pearl-primary))' }}>⚡</span> INITIALIZE SCOUT
+        <div className="supreme-glass" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#fff' }}>
+                    <span style={{ color: 'hsl(var(--pearl-primary))' }}>⚡</span> MANUAL CONTROL
                 </h2>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <div className="platform-selector" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                     {platforms.map(p => (
                         <button
                             key={p.id}
@@ -93,64 +93,65 @@ export default function JobCreator({ session }) {
                         </button>
                     ))}
 
-                    <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)', margin: '0 0.5rem' }}></div>
-
-                    <button
-                        onClick={() => setBoostMode(!boostMode)}
-                        style={{
-                            padding: '0.5rem 1rem',
-                            borderRadius: '12px',
-                            background: boostMode ? 'hsl(var(--pearl-warning))' : 'rgba(255,255,255,0.05)',
-                            color: boostMode ? '#000' : 'rgba(255,255,255,0.4)',
-                            border: '1px solid ' + (boostMode ? 'hsl(var(--pearl-warning))' : 'rgba(255,255,255,0.1)'),
-                            cursor: 'pointer',
-                            fontSize: '0.7rem',
-                            fontWeight: 900,
-                            letterSpacing: '1px',
-                            transition: 'all 0.3s'
-                        }}
-                    >
-                        🚀 BOOST {boostMode ? 'ON' : 'OFF'}
-                    </button>
-
-                    <select
-                        value={strategy}
-                        onChange={(e) => setStrategy(e.target.value)}
-                        style={{
-                            padding: '0.5rem 1rem',
-                            borderRadius: '12px',
-                            background: 'rgba(255,255,255,0.05)',
-                            color: '#fff',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            fontSize: '0.7rem',
-                            fontWeight: 800,
-                            cursor: 'pointer'
-                        }}
-                    >
-                        <option value="A">STRATEGY A (STEALTH)</option>
-                        <option value="B">STRATEGY B (SPEED)</option>
-                        <option value="C">STRATEGY C (MOBILE SWARM)</option>
-                    </select>
-
-                    <button
-                        onClick={() => setOneClickMode(!oneClickMode)}
-                        style={{
-                            padding: '0.5rem 1rem',
-                            borderRadius: '12px',
-                            background: oneClickMode ? 'hsl(var(--nexus-primary))' : 'rgba(255,255,255,0.05)',
-                            color: oneClickMode ? '#000' : '#fff',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            fontSize: '0.7rem',
-                            fontWeight: 900,
-                            cursor: 'pointer'
-                        }}
-                    >
-                        🤖 ONE-CLICK AGENCY: {oneClickMode ? 'ACTIVE' : 'OFF'}
-                    </button>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1rem' }}>
+            <div className="advanced-controls" style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <button
+                    onClick={() => setBoostMode(!boostMode)}
+                    style={{
+                        padding: '0.5rem 1rem',
+                        borderRadius: '12px',
+                        background: boostMode ? 'hsl(var(--pearl-warning))' : 'rgba(255,255,255,0.05)',
+                        color: boostMode ? '#000' : 'rgba(255,255,255,0.4)',
+                        border: '1px solid ' + (boostMode ? 'hsl(var(--pearl-warning))' : 'rgba(255,255,255,0.1)'),
+                        cursor: 'pointer',
+                        fontSize: '0.7rem',
+                        fontWeight: 900,
+                        letterSpacing: '1px',
+                        transition: 'all 0.3s'
+                    }}
+                >
+                    🚀 BOOST {boostMode ? 'ON' : 'OFF'}
+                </button>
+
+                <select
+                    value={strategy}
+                    onChange={(e) => setStrategy(e.target.value)}
+                    style={{
+                        padding: '0.5rem 1rem',
+                        borderRadius: '12px',
+                        background: 'rgba(255,255,255,0.05)',
+                        color: '#fff',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        fontSize: '0.7rem',
+                        fontWeight: 800,
+                        cursor: 'pointer'
+                    }}
+                >
+                    <option value="A">STRATEGY A (STEALTH)</option>
+                    <option value="B">STRATEGY B (SPEED)</option>
+                    <option value="C">STRATEGY C (MOBILE SWARM)</option>
+                </select>
+
+                <button
+                    onClick={() => setOneClickMode(!oneClickMode)}
+                    style={{
+                        padding: '0.5rem 1rem',
+                        borderRadius: '12px',
+                        background: oneClickMode ? 'hsl(var(--nexus-primary))' : 'rgba(255,255,255,0.05)',
+                        color: oneClickMode ? '#000' : '#fff',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        fontSize: '0.7rem',
+                        fontWeight: 900,
+                        cursor: 'pointer'
+                    }}
+                >
+                    🤖 ONE-CLICK AGENCY: {oneClickMode ? 'ACTIVE' : 'OFF'}
+                </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="search-container" style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1, position: 'relative' }}>
                     <input
                         className="input-cyber"

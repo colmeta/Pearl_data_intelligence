@@ -41,13 +41,14 @@ from backend.routers import opt_out
 app.include_router(opt_out.router)
 
 # CRM & Outreach Routers (Production)
-from backend.routers import crm, outreach, bulk, oracle, clarity_pearl, slack_relay
+from backend.routers import crm, outreach, bulk, oracle, clarity_pearl, slack_relay, organization_onboarding
 app.include_router(crm.router)
 app.include_router(outreach.router)
 app.include_router(bulk.router)
 app.include_router(oracle.router)
 app.include_router(clarity_pearl.router)
 app.include_router(slack_relay.router)
+app.include_router(organization_onboarding.router)
 
 # White-Label API (Phase 6)
 from backend.routers import v1
