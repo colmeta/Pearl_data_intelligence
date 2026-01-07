@@ -53,6 +53,9 @@ def create_job(job: JobRequest, user: dict = Depends(get_current_user)):
             "target_query": job.query,
             "target_platform": job.platform,
             "compliance_mode": job.compliance_mode,
+            "priority": job.priority,
+            "ab_test_group": job.ab_test_group,
+            "search_metadata": job.search_metadata or {},
             "status": "queued"
         }
         

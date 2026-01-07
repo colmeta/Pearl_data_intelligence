@@ -30,7 +30,10 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           WORKER_ID: "github_actions_runner"
+          PYTHONPATH: ${{ github.workspace }}
+          PYTHONUNBUFFERED: "1"
         run: |
           cd worker
           # Run for max 30 minutes to allow for sustained surveillance
