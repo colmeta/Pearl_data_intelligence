@@ -1,4 +1,3 @@
-import os
 from fastapi import APIRouter, Depends, HTTPException
 from backend.schemas import JobRequest, JobResponse, JobStatusResponse
 from backend.dependencies import get_current_user
@@ -22,12 +21,16 @@ def create_job(job: JobRequest, user: dict = Depends(get_current_user)):
 
     # Insert into 'jobs' table
     try:
-        # 2. Extract Org ID from User
+        # 1. Extract User/Org ID
+        user_id = user.get("id")
         org_id = user.get("org_id")
+        
+        if not user_id:
+            raise HTTPException(status_code=401, detail="User identification failed.")
         if not org_id:
             raise HTTPException(status_code=400, detail="User is not associated with an organization. Please create or join one.")
 
-        # 3. Check Org-Level Credits
+        # 2. Check Org-Level Credits
         org_res = supabase.table('organizations').select('credits_monthly', 'credits_used').eq('id', org_id).execute()
         
         if not org_res.data or len(org_res.data) == 0:
@@ -40,10 +43,10 @@ def create_job(job: JobRequest, user: dict = Depends(get_current_user)):
         if (allowance - used) < 1:
             raise HTTPException(status_code=402, detail="Organization has exhausted monthly credits. Please upgrade your plan.")
         
-        # 4. Deduct credit (Record usage)
+        # 3. Deduct credit (Record usage)
         supabase.table('organizations').update({'credits_used': used + 1}).eq('id', org_id).execute()
         
-        # 5. Create job data
+        # 4. Create job data
         data = {
             "user_id": user_id, 
             "org_id": org_id,
@@ -90,15 +93,17 @@ def get_job_status(job_id: str, user: dict = Depends(get_current_user)):
         )
         
     try:
-        res = supabase.table('jobs').select("*").eq('id', job_id).execute()
+        # Only allow users to see jobs in their org (or their own)
+        org_id = user.get("org_id")
+        res = supabase.table('jobs').select("*").eq('id', job_id).eq('org_id', org_id).execute()
         if not res.data:
-             raise HTTPException(status_code=404, detail="Job not found")
+            raise HTTPException(status_code=404, detail="Job not found in your workspace")
         
         job_data = res.data[0]
         return JobStatusResponse(
             job_id=job_id, 
             status=job_data.get("status", "unknown"),
-            progress=job_data.get("progress_message", "Processing..."), # Assuming a progress_message column or similar
+            progress=job_data.get("progress_message", "Processing..."),
             data=job_data
         )
     except Exception as e:

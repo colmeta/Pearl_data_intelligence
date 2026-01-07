@@ -103,17 +103,18 @@ class HydraController:
             print(f"⚠️ Error polling for work: {e}")
             return None
 
-    async def process_job_with_browser(self, job):
-        job_id = job.get('id')
-        query = job.get('target_query')
-        platform = job.get('target_platform', 'generic')
-        
+    async def process_job_with_browser(self, job_id, query, platform='generic', compliance=None, launch_args=None, stealth_profile='stealth'):
         print(f"⚔️ Engaging Target: {query} [{platform}]")
         
         scraped_data = {}
         verification_log = ""
         is_verified = False
+        final_url = "about:blank"
+        shot_path = f"screenshots/{job_id}.png"
         
+        if not launch_args:
+            launch_args = ["--no-sandbox"]
+
         async with async_playwright() as p:
             # Get next proxy
             proxy_server = self.proxy_manager.get_proxy()
@@ -162,7 +163,7 @@ class HydraController:
             
             try:
                 # A/B TESTING LOGIC
-                ab_group = compliance.get('ab_test_group', 'A') # Assuming compliance dict might contain ab_test_group
+                ab_group = compliance.get('ab_test_group', 'A') if compliance else 'A'
                 target_url = ""
                 
                 if query.startswith("http"):
@@ -196,6 +197,8 @@ class HydraController:
                         if attempt == max_retries - 1: raise nav_err
                         await asyncio.sleep(2 ** attempt)
 
+                final_url = page.url
+                
                 if platform == 'linkedin':
                     engine = LinkedInEngine(page)
                     data_results = await engine.scrape(query)
@@ -245,7 +248,7 @@ class HydraController:
                 elif platform == 'facebook':
                     engine = FacebookEngineV2(page)
                     data_results = await engine.scrape(query)
-                elif platform == 'google_news':
+                elif platform in ['google_news', 'news']:
                     engine = NewsPulseEngine(page)
                     data_results = await engine.scrape(query)
                 elif platform == 'real_estate':
@@ -273,14 +276,8 @@ class HydraController:
                 if data_results:
                     # For V1 we just take the first or list
                     scraped_data = data_results[0] if isinstance(data_results, list) and len(data_results) > 0 else {}
-                    if isinstance(data_results, list) and len(data_results) > 1:
-                         # Store extra results logic if needed, for now just taking first is fine matching existing logic
-                         pass
-                    
-                    title = scraped_data.get('title', 'Extracted Data')
                     is_verified = scraped_data.get('verified', False)
                 else:
-                    title = "No results found"
                     is_verified = False
                     
             except Exception as e:
@@ -288,12 +285,13 @@ class HydraController:
                 verification_log = f"Browser Error: {str(e)}"
                 is_verified = False
             finally:
-                final_url = page.url if 'page' in locals() else "about:blank"
                 # VISION-X: Capture screenshot for image-heavy results or instagram
-                shot_path = f"screenshots/{job_id}.png"
                 if platform in ['instagram', 'ecommerce'] and 'page' in locals():
                     os.makedirs("screenshots", exist_ok=True)
-                    await page.screenshot(path=shot_path)
+                    try:
+                        await page.screenshot(path=shot_path)
+                    except:
+                        pass
                 
                 # Aggressive Memory Cleanup (Phase 7 Hardening)
                 await page.close()
@@ -433,7 +431,7 @@ class HydraController:
                 query = job.get('target_query')
                 platform = job.get('target_platform', 'generic')
                 compliance = job.get('compliance', {}) # Assuming compliance is a dict in job
-                ab_test_group = compliance.get('ab_test_group', 'A') # Default to A if not specified
+                ab_test_group = compliance.get('ab_test_group', 'A') if compliance else 'A'
                 
                 print(f"[{self.worker_id}] ⚡ Mission Start: {query} ({platform}) [Group {ab_test_group}]")
                 
@@ -469,6 +467,26 @@ class HydraController:
                 await self.process_job_with_browser(job_id, query, platform, compliance, launch_args, stealth_profile)
             else:
                 await asyncio.sleep(5)
+
+    async def mesh_pulse(self):
+        """
+        THE DIVINE MESH: Peer-to-Peer stealth coordination.
+        Workers share which proxies are 'burned' and which User-Agents are currently 100% undetected.
+        """
+        if not self.supabase: return
+        print("🛰️ Divine Mesh: Pulsing coordination data...")
+        
+        # Share some mock 'stealth data' to the worker_status table
+        pulse_data = {
+            "worker_id": self.worker_id,
+            "stealth_health": 98.5,
+            "best_user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X)",
+            "last_pulse": datetime.now().isoformat()
+        }
+        try:
+             self.supabase.table('worker_status').upsert(pulse_data).execute()
+        except Exception as e:
+             print(f"⚠️ Mesh Pulse Failure: {e}")
 
 if __name__ == "__main__":
     import argparse

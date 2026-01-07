@@ -1,4 +1,4 @@
-import google.generativeai as genai
+from google import genai
 import os
 from datetime import datetime
 from dotenv import load_dotenv
@@ -8,7 +8,7 @@ load_dotenv()
 class GeminiClient:
     """
     CLARITY PEARL ARBITER - GEMINI INTEGRATION
-    Optimized for Gemini 1.5 Flash-8B to maintain near-zero costs.
+    Optimized for Gemini 1.5 Flash to maintain near-zero costs.
     """
     
     def __init__(self):
@@ -16,16 +16,14 @@ class GeminiClient:
         if not api_key:
             print("⚠️ Warning: GEMINI_API_KEY not found in environment.")
         
-        genai.configure(api_key=api_key)
-        self.api_key = api_key
-        # Use flash-8b for maximum speed and minimum cost (FREE on many tiers)
-        self.model = genai.GenerativeModel('gemini-1.5-flash-8b')
+        self.client = genai.Client(api_key=api_key) if api_key else None
+        self.model_id = 'gemini-1.5-flash-8b'
 
     async def analyze_visuals(self, query, image_path):
         """
         VISION-X: Analyze a screenshot using Gemini Vision.
         """
-        if not self.api_key or self.api_key == "YOUR_GEMINI_API_KEY":
+        if not self.client:
              return None
 
         try:
@@ -44,9 +42,10 @@ class GeminiClient:
             Return ONLY a JSON object: {{"truth_score": int, "verdict": "string"}}
             """
             
-            # Note: This assumes the library supports simple image content in generate_content
-            # Based on standard google-generativeai usage:
-            response = self.model.generate_content([prompt, {"mime_type": "image/png", "data": img_data}])
+            response = self.client.models.generate_content(
+                model=self.model_id,
+                contents=[prompt, genai.types.Part.from_bytes(data=img_data, mime_type="image/png")]
+            )
             return response.text
         except Exception as e:
             print(f"❌ Gemini Vision Error: {e}")
@@ -82,6 +81,9 @@ class GeminiClient:
         """
         GHOSTWRITER: Draft personalized outreach based on verified data.
         """
+        if not self.client:
+            return "Arbiter Offline"
+            
         prompt = f"""
         You are THE GHOSTWRITER, a elite corporate negotiator.
         LEAD DATA: {lead_data}
@@ -95,7 +97,10 @@ class GeminiClient:
         Return ONLY the text of the message.
         """
         try:
-            response = await self.model.generate_content_async(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_id,
+                contents=prompt
+            )
             return response.text.strip()
         except Exception as e:
             print(f"❌ Ghostwriter Error: {e}")
@@ -105,6 +110,9 @@ class GeminiClient:
         """
         THE ORACLE: Convert NL prompt into structured mission steps.
         """
+        if not self.client:
+            return []
+            
         prompt = f"""
         You are THE ORACLE, the supreme intelligence of the CLARITY PEARL.
         USER PROMPT: "{user_prompt}"
@@ -132,7 +140,10 @@ class GeminiClient:
         ]
         """
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_id,
+                contents=prompt
+            )
             # Remove any markdown formatting if Gemini includes it
             text = response.text.strip().replace('```json', '').replace('```', '')
             import json

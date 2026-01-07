@@ -39,8 +39,9 @@ class HiveSentry:
             to_heal = []
             for job in res_jobs.data:
                 # Check if worker is gone or job is too old
-                # (For simplicity here, we focus on the 'worker gone' case as the primary self-healing trigger)
-                if job['worker_id'] not in active_worker_ids:
+                # Use .get() to avoid KeyError if worker_id is missing during schema migration
+                job_worker_id = job.get('worker_id')
+                if job_worker_id not in active_worker_ids:
                     to_heal.append(job)
             
             if to_heal:
@@ -50,7 +51,7 @@ class HiveSentry:
                         "status": "queued",
                         "started_at": None,
                         "worker_id": None,
-                        "error_log": f"Healed by Hive Sentry: Worker {job['worker_id']} vanished."
+                        "error_log": f"Healed by Hive Sentry: Worker {job.get('worker_id', 'unknown')} vanished."
                     }).eq('id', job['id']).execute()
 
     async def purge_stale_workers(self):

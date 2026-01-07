@@ -4,12 +4,26 @@ import { supabase } from '../lib/supabase'
 export default function Login() {
     const [loading, setLoading] = useState(false)
     const [email, setEmail] = useState('')
+    const [fullName, setFullName] = useState('')
+    const [companyName, setCompanyName] = useState('')
     const [sent, setSent] = useState(false)
 
     const handleLogin = async (e) => {
         e.preventDefault()
         setLoading(true)
-        const { error } = await supabase.auth.signInWithOtp({ email })
+
+        // Capture Name and Company in metadata. 
+        // signInWithOtp will create the user if they don't exist and trigger handle_new_user()
+        const { error } = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+                data: {
+                    full_name: fullName,
+                    company_name: companyName
+                }
+            }
+        })
+
         if (error) {
             alert(error.error_description || error.message)
         } else {
@@ -32,14 +46,17 @@ export default function Login() {
                 </div>
 
                 {sent ? (
-                    <div className="toast-success" style={{ textAlign: 'left', padding: '1rem', borderRadius: 'var(--radius-md)', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--success)' }}>
-                        <p style={{ margin: 0, color: 'var(--success)' }}><strong>Link Sent.</strong></p>
-                        <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Check your secure comms channel used for verification.</p>
+                    <div className="status-badge status-completed" style={{ textAlign: 'left', padding: '1.5rem', borderRadius: 'var(--radius-md)', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--success)', display: 'block' }}>
+                        <p style={{ margin: 0, color: 'var(--success)', fontWeight: 800 }}>MAPPING INITIALIZED</p>
+                        <p style={{ margin: '0.5rem 0 0', fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                            A secure magic link has been dispatched to <strong>{email}</strong>.
+                            Confirm your identity to enter the lattice.
+                        </p>
                     </div>
                 ) : (
-                    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                         <div style={{ textAlign: 'left' }}>
-                            <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.75rem', fontWeight: 600, paddingLeft: '0.25rem' }}>OPERATOR ID</label>
+                            <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.6rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>OPERATOR ID (EMAIL)</label>
                             <input
                                 className="input-cyber"
                                 type="email"
@@ -47,17 +64,46 @@ export default function Login() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
+                                style={{ padding: '1rem' }}
                             />
                         </div>
-                        <button className="btn-primary" disabled={loading} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div style={{ textAlign: 'left' }}>
+                                <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.6rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>FULL NAME</label>
+                                <input
+                                    className="input-cyber"
+                                    type="text"
+                                    placeholder="John Doe"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    required
+                                    style={{ padding: '0.75rem' }}
+                                />
+                            </div>
+                            <div style={{ textAlign: 'left' }}>
+                                <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.6rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>COMPANY</label>
+                                <input
+                                    className="input-cyber"
+                                    type="text"
+                                    placeholder="Acme Inc"
+                                    value={companyName}
+                                    onChange={(e) => setCompanyName(e.target.value)}
+                                    required
+                                    style={{ padding: '0.75rem' }}
+                                />
+                            </div>
+                        </div>
+
+                        <button className="btn-primary" disabled={loading} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '1rem', padding: '1rem' }}>
                             {loading ? <div className="spinner"></div> : 'INITIALIZE SESSION'}
                         </button>
                     </form>
                 )}
 
-                <div style={{ marginTop: '2.5rem', fontSize: '0.7rem', color: 'var(--text-muted)', opacity: 0.7 }}>
-                    System Version 1.0.1 (Modular) <br />
-                    Encrypted Connection (AES-256) Established
+                <div style={{ marginTop: '2.5rem', fontSize: '0.6rem', color: 'var(--text-muted)', opacity: 0.5, letterSpacing: '1px' }}>
+                    SYSTEM VERSION 1.0.1 (MODULAR) <br />
+                    ENCRYPTED CONNECTION (AES-256) ESTABLISHED
                 </div>
             </div>
         </div>
