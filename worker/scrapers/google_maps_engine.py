@@ -122,14 +122,14 @@ class GoogleMapsEngine:
             else:
                  return await self._scrape_single_result()
 
-    except Exception as e:
+        except Exception as e:
             print(f"[{self.platform}] ❌ Error: {e}")
             return [{
                 "name": "Google Maps Query",
                 "source_url": url,
                 "verified": False,
-                 "snippet": f"Search initiated for: {query}. Visual verification required.",
-                 "error": str(e)
+                "snippet": f"Search initiated for: {query}. Visual verification required.",
+                "error": str(e)
             }]
 
     async def _scrape_single_result(self):
