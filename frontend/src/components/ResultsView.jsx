@@ -32,28 +32,21 @@ export default function ResultsView() {
             const { data: { session: currentSession } } = await supabase.auth.getSession()
             const token = currentSession?.access_token
 
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || ''}/api/outreach/send/`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || ''}/api/outreach/send/${lead.id}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    target_emails: [lead.data_payload?.email],
-                    subject: `Strategic Inquiry: ${lead.data_payload?.company || 'Your Organization'}`,
-                    body_template: `Hello ${lead.data_payload?.name || 'there'},\n\nI noticed your work at ${lead.data_payload?.company || 'your company'} and wanted to reach out regarding a strategic opportunity.\n\nBest regards,\n[Clarity Pearl Agent]`,
-                    sender_identity: "agent@claritypearl.com",
-                    service_provider: "smtp",
-                    api_key: "REAL_KEY_FROM_ENV" // Backend should handle this
-                })
+                }
             })
 
+            const data = await response.json()
             if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.detail || 'Outreach failed')
+                throw new Error(data.error || data.detail || 'Outreach failed')
             }
 
-            alert('Outreach sequence initiated.')
+            alert(`Outreach ${data.status === 'sent' ? 'Sent' : 'Queued'}. Provider: ${data.provider}`)
+            fetchResults() // Refresh to show status update
         } catch (error) {
             console.error('Outreach error:', error)
             alert(error.message || 'Failed to initiate outreach.')
@@ -214,11 +207,28 @@ export default function ResultsView() {
                                             )}
                                         </td>
                                         <td style={{ padding: '1rem' }}>
-                                            {r.verified ? (
-                                                <span className="status-badge status-completed">VERIFIED</span>
-                                            ) : (
-                                                <span className="status-badge status-running">PENDING</span>
-                                            )}
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                                {r.verified ? (
+                                                    <span className="status-badge status-completed" style={{ fontSize: '0.6rem' }}>VERIFIED</span>
+                                                ) : (
+                                                    <span className="status-badge status-running" style={{ fontSize: '0.6rem' }}>PENDING</span>
+                                                )}
+
+                                                {r.outreach_status && r.outreach_status !== 'none' && (
+                                                    <span style={{
+                                                        fontSize: '0.6rem',
+                                                        fontWeight: 900,
+                                                        padding: '2px 6px',
+                                                        borderRadius: '4px',
+                                                        background: r.outreach_status === 'sent' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                                        color: r.outreach_status === 'sent' ? '#22c55e' : '#ef4444',
+                                                        border: `1px solid ${r.outreach_status === 'sent' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                                                        textAlign: 'center'
+                                                    }}>
+                                                        PROMO: {r.outreach_status.toUpperCase()}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td style={{ padding: '1rem' }}>
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>

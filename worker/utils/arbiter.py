@@ -123,4 +123,25 @@ class ArbiterAgent:
             print(f"❌ Predictive Error: {e}")
             return {"intent_score": 0, "oracle_signal": "Baseline Intelligence", "confidence": 0.5}
 
+    async def recursive_verdict(self, lead_data):
+        """
+        THE SLEUTH: Generate a follow-up verification query.
+        If we found them on LinkedIn, maybe check for a recent News event or a Website mention.
+        """
+        prompt = f"""
+        LEAD DATA: {lead_data}
+        
+        TASK:
+        Generate a SINGLE follow-up search query to verify this lead's current activity or role 
+        on a DIFFERENT platform (e.g., Google News, Website, or Twitter).
+        
+        Return ONLY the query string.
+        """
+        try:
+             # We reuse the same model for speed/cost
+             response = await self.gemini_client.model.generate_content(prompt)
+             return response.text.strip()
+        except:
+             return f"verify {lead_data.get('name')} {lead_data.get('company')}"
+
 arbiter = ArbiterAgent()

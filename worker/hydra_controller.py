@@ -415,6 +415,21 @@ class HydraController:
                         lead_data=data
                     ))
 
+                # 6. RECURSIVE FACT-CHECKING (The Sleuth Protocol)
+                if intent_data.get('intent_score', 0) > 90:
+                    print(f"   🕵️ Sleuth Protocol: Activating Recursive Fact-Check...")
+                    verification_query = await arbiter.recursive_verdict(data)
+                    self.supabase.table('jobs').insert({
+                        "org_id": job_data.get('org_id'),
+                        "user_id": job_data.get('user_id'),
+                        "target_query": verification_query,
+                        "target_platform": "google_news", # Verify via news
+                        "compliance_mode": "strict",
+                        "status": "queued",
+                        "priority": 5,
+                        "search_metadata": {"recursive_origin": result_id}
+                    }).execute()
+
                 print(f"💾 Data vaulted. Result ID: {result_id}")
             else:
                  print("⚠️ Inserted result but got no data back.")
