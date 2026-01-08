@@ -122,10 +122,14 @@ class HydraController:
             launch_args = ["--no-sandbox"]
 
         async with async_playwright() as p:
-            # Get next proxy
-            proxy_server = self.proxy_manager.get_proxy()
-            # Add proxy support
-            proxy = self.proxy_manager.get_residential() if platform == 'linkedin' else None
+            # Get next proxy from manager
+            proxy_url = self.proxy_manager.get_proxy()
+            proxy = None
+            
+            # Format proxy for Playwright if not "direct"
+            if proxy_url and proxy_url != "direct":
+                proxy = {"server": proxy_url}
+                print(f"   🌐 Using Proxy: {proxy_url[:30]}...")
             
             # Launch real browser with Stealth Args
             browser = await p.chromium.launch(
