@@ -22,6 +22,8 @@ class RedditPulseEngine(BaseDorkEngine):
         # Examples: "query" in /r/startups, /r/realestate, /r/ecommerce
         sub_results = await self.run_dork_search(f'"{query}"', "reddit.com/r")
         
+        all_results = results + sub_results
+        
         # Tag signals as "Crowd Sentiment"
         for r in all_results:
             r['sentiment_signal'] = True

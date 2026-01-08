@@ -1,5 +1,5 @@
 from backend.services.supabase_client import get_supabase
-from worker.utils.gemini_client import gemini_client
+from .gemini_client import gemini_client
 import json
 
 class LeadPrioritizer:

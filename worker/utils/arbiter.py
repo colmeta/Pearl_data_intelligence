@@ -152,7 +152,7 @@ class ArbiterAgent:
         """
         try:
              # We reuse the same model for speed/cost
-             response = await self.gemini_client.model.generate_content(prompt)
+             response = await gemini_client.model.generate_content(prompt)
              return response.text.strip()
         except:
              return f"verify {lead_data.get('name')} {lead_data.get('company')}"

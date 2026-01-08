@@ -64,15 +64,15 @@ class EmailVerifier:
         else:
             try:
                 mx_records = dns.resolver.resolve(domain, 'MX')
-            if not mx_records:
-                result["checks"]["mx_record"] = "FAIL"
+                if not mx_records:
+                    result["checks"]["mx_record"] = "FAIL"
+                    return result
+                result["checks"]["mx_record"] = "PASS"
+                result["risk_score"] -= 30
+                mx_host = str(mx_records[0].exchange)
+            except Exception as e:
+                result["checks"]["mx_record"] = f"FAIL ({e})"
                 return result
-            result["checks"]["mx_record"] = "PASS"
-            result["risk_score"] -= 30
-            mx_host = str(mx_records[0].exchange)
-        except Exception as e:
-            result["checks"]["mx_record"] = f"FAIL ({e})"
-            return result
         
         # 4. SMTP Ping (Lightweight, no actual send)
         try:

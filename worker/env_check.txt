@@ -1,0 +1,6 @@
+❌ Playwright: NOT FOUND
+✅ dnspython: FOUND
+✅ requests: FOUND
+❌ supabase: NOT FOUND
+Executable: C:\Users\LENOVO\AppData\Local\Python\pythoncore-3.14-64\python.exe
+CWD: C:\Users\LENOVO\Desktop\Pearl_data_intelligence\worker
