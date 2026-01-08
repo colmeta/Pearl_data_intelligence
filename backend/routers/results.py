@@ -4,6 +4,7 @@ from backend.services.supabase_client import get_supabase
 from typing import List, Dict, Any
 import csv
 import io
+import httpx
 from fastapi.responses import StreamingResponse
 
 router = APIRouter(prefix="/api/results", tags=["Results"])
@@ -94,3 +95,36 @@ async def export_job_results(job_id: str, user: dict = Depends(get_current_user)
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename=scout_export_{job_id}.csv"}
     )
+
+@router.post("/webhook/trigger/{job_id}")
+async def trigger_webhook(job_id: str, user: dict = Depends(get_current_user)):
+    """
+    Manually or automatically trigger a webhook push for job results.
+    """
+    supabase = get_supabase()
+    org_id = user.get("org_id")
+    
+    # 1. Get Webhook URL from Org
+    org_res = supabase.table('organizations').select('webhook_url').eq('id', org_id).execute()
+    if not org_res.data or not org_res.data[0].get('webhook_url'):
+        raise HTTPException(status_code=400, detail="No webhook URL configured for this organization.")
+    
+    url = org_res.data[0]['webhook_url']
+    
+    # 2. Get Data
+    res = supabase.table('results').select("*").eq('job_id', job_id).execute()
+    if not res.data:
+         raise HTTPException(status_code=404, detail="No results found to push.")
+         
+    # 3. Push to Webhook
+    async with httpx.AsyncClient() as client:
+        try:
+            webhook_res = await client.post(url, json={
+                "job_id": job_id,
+                "event": "job_completed",
+                "lead_count": len(res.data),
+                "data": res.data
+            }, timeout=10)
+            return {"status": "success", "webhook_response_code": webhook_res.status_code}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Webhook push failed: {str(e)}")

@@ -37,10 +37,10 @@ async def dispatch_mission(
     if not org_id:
          raise HTTPException(status_code=400, detail="Organization context missing.")
 
-    print(f"🔮 The Oracle is interpreting mission: {prompt[:50]}...")
+    print(f"🔮 The Oracle is interpreting mission: {req.prompt[:50]}...")
     
     # 1. Interpret Mission via Gemini
-    jobs_to_create = await gemini_client.dispatch_mission(prompt)
+    jobs_to_create = await gemini_client.dispatch_mission(req.prompt)
     
     if not jobs_to_create:
          raise HTTPException(status_code=422, detail="The Oracle could not derive a mission from your prompt.")

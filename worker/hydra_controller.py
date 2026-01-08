@@ -112,14 +112,38 @@ class HydraController:
     async def process_job_with_browser(self, job_id, query, platform='generic', compliance=None, launch_args=None, stealth_profile='stealth'):
         print(f"⚔️ Engaging Target: {query} [{platform}]")
         
-        scraped_data = {}
-        verification_log = ""
-        is_verified = False
-        final_url = "about:blank"
-        shot_path = f"screenshots/{job_id}.png"
-        
         if not launch_args:
             launch_args = ["--no-sandbox"]
+
+        # --- IMPERIAL STRATEGY: DATA VAULT LEVERAGE ---
+        # Check if we already have verified leads in the vault for this query
+        print(f"📡 Vault Search: Scanning local intelligence for '{query}'...")
+        try:
+            # Simple keyword match on title/company or name
+            vault_res = self.supabase.table('data_vault').select("*").or_(
+                f"full_name.ilike.%{query}%,title.ilike.%{query}%,company.ilike.%{query}%"
+            ).order('last_verified_at', desc=True).limit(20).execute()
+            
+            if vault_res.data:
+                print(f"💎 Vault Hit: found {len(vault_res.data)} existing leads. Leveraging...")
+                # Format vault hits as scrape items
+                vault_leads = []
+                for v in vault_res.data:
+                    vault_leads.append({
+                        "name": v.get('full_name'),
+                        "title": v.get('title'),
+                        "company": v.get('company'),
+                        "email": v.get('email'),
+                        "source_url": v.get('linkedin_url'),
+                        "vault_leverage": True,
+                        "verified": True
+                    })
+                scraped_data = vault_leads
+                
+                # If we have many hits, we could theoretically skip the scrape
+                # For now, we continue to append new results to the vault hits
+        except Exception as vault_err:
+            print(f"⚠️ Vault Lookup Failed: {vault_err}")
 
         async with async_playwright() as p:
             # Get next proxy from manager

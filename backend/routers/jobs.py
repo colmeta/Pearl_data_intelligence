@@ -47,13 +47,18 @@ def create_job(job: JobRequest, user: dict = Depends(get_current_user)):
         supabase.table('organizations').update({'credits_used': used + 1}).eq('id', org_id).execute()
         
         # 4. Create job data
+        # Explicit priority boost if requested
+        final_priority = job.priority
+        if job.search_metadata and job.search_metadata.get('boost'):
+            final_priority = max(final_priority, 100)
+
         data = {
             "user_id": user_id, 
             "org_id": org_id,
             "target_query": job.query,
             "target_platform": job.platform,
             "compliance_mode": job.compliance_mode,
-            "priority": job.priority,
+            "priority": final_priority,
             "ab_test_group": job.ab_test_group,
             "search_metadata": job.search_metadata or {},
             "status": "queued"
