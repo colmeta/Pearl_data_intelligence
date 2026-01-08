@@ -15,44 +15,42 @@ class ArbiterAgent:
     async def score_lead(self, target_query, lead_data, search_context=""):
         """
         AI-Powered scoring engine with Temporal Awareness.
-        Factors in 'Current Time' to detect stale news or offers.
-        """
-        """
-        AI-Powered scoring engine using Gemini 1.5 Flash.
         Falls back to heuristics if AI fails.
         """
-        # Attempt AI Verification
         try:
-            ai_response_raw = await gemini_client.verify_data(target_query, lead_data, search_context)
-            
-            if ai_response_raw:
-                # Basic JSON sanitization (remove markdown blocks if Gemini added them)
-                clean_json = re.sub(r'```json\n?|\n?```', '', ai_response_raw).strip()
-                ai_data = json.loads(clean_json)
-                return ai_data.get('truth_score', 0), ai_data.get('verdict', "AI Verdict Unavailable")
+            ai_data = await gemini_client.verify_data(target_query, lead_data, search_context)
+            if ai_data and isinstance(ai_data, dict):
+                return ai_data.get('truth_score', 0), ai_data.get('verdict', "AI Verified")
         except Exception as e:
-            print(f"⚠️ Arbiter AI Fallback Triggered: {e}")
+            print(f"Arbiter AI Fallback Triggered: {e}")
+            
+        return self._calculate_heuristic_score(target_query, lead_data)
 
     async def score_visual_lead(self, target_query, screenshot_path):
         """
         VISION-X: Analyze product images or social posts via Gemini Vision.
-        Used for Instagram (OCR) and E-Commerce (Visual Match).
         """
         try:
-            print(f"⚖️ Arbiter Vision-X: Analyzing sensory evidence {screenshot_path}...")
+            print(f"Arbiter Vision-X: Analyzing sensory evidence {screenshot_path}...")
             ai_response = await gemini_client.analyze_visuals(target_query, screenshot_path)
             if ai_response:
+                # Basic JSON sanitization
                 clean_json = re.sub(r'```json\n?|\n?```', '', ai_response).strip()
                 ai_data = json.loads(clean_json)
-                return ai_data.get('truth_score', 0), ai_data.get('verdict', "Vision Verdict Unvailable")
+                return ai_data.get('truth_score', 0), ai_data.get('verdict', "Vision Verdict")
         except Exception as e:
-            print(f"❌ Vision-X Failure: {e}")
-            return 0, "Visual Truth Verification Failed"
+            print(f"Arbiter Vision-X Failure: {e}")
 
-        # --- HEURISTIC FALLBACK (Hardened) ---
+        return 0, "Visual Truth Verification Failed"
+
+    def _calculate_heuristic_score(self, target_query, lead_data):
+        """Standard fallback heuristic engine."""
         score = 0
         rules_applied = []
         
+        if not lead_data:
+            return 0, "No data to score"
+
         query_terms = set(re.findall(r'\w+', target_query.lower()))
         lead_text = json.dumps(lead_data).lower()
         
@@ -61,7 +59,7 @@ class ArbiterAgent:
         score += relevance_score
         rules_applied.append(f"Relevance: +{int(relevance_score)}")
 
-        # Completeness Check (Hardened)
+        # Completeness Check
         critical_fields = ['name', 'title', 'company']
         present_fields = [f for f in critical_fields if lead_data.get(f) and len(str(lead_data.get(f))) > 1]
         completeness_score = (len(present_fields) / len(critical_fields)) * 40
@@ -73,10 +71,8 @@ class ArbiterAgent:
             score += 20
             rules_applied.append("Trust: +20 (Source Signal)")
         
-        # --- NEW: TEMPORAL FRESHNESS CHECK (Heuristic) ---
-        # Look for "ago" or year markers
-        current_year = "2026"
-        stale_markers = ["2022", "2021", "2020", "2019", "2018", "years ago"]
+        # Temporal Freshness
+        stale_markers = ["2022", "2021", "2020", "years ago"]
         signal_text = json.dumps(lead_data).lower()
         
         for marker in stale_markers:
@@ -85,14 +81,14 @@ class ArbiterAgent:
                 rules_applied.append(f"Decay: -30 (Stale Signal: {marker})")
                 break
         
-        if "hours ago" in signal_text or "minutes ago" in signal_text or "today" in signal_text:
+        if any(m in signal_text for m in ["hours ago", "minutes ago", "today"]):
             score += 15
             rules_applied.append("Freshness: +15 (Near-Live Signal)")
 
         final_score = max(0, min(int(score), 100))
         verdict = f"H-Score {final_score}/100 (Fallback) | {', '.join(rules_applied)}"
-        
         return final_score, verdict
+
 
     async def predict_intent(self, lead_data):
         """
