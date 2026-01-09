@@ -45,7 +45,7 @@ export default function EmptyStates({ type = 'no-data', title, description, acti
         'maintenance': {
             icon: '🔧',
             defaultTitle: 'Under Maintenance',
-            defaultDescription: 'We're making improvements.Check back soon.'
+            defaultDescription: 'We\'re making improvements. Check back soon.'
         }
     }
 

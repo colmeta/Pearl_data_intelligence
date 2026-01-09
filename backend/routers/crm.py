@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
+from backend.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/crm", tags=["CRM Integration"])
 
