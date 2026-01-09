@@ -16,23 +16,28 @@ class GoogleMapsGridEngine:
         Performs a 'Grid Search'. 
         If no grid is provided, it does a standard high-stealth scrape.
         """
-        print(f"📡 Scout-01: Grid-Scanning Google Maps for '{query}'...")
+        print(f"📡 Clarity Pearl: Grid-Scanning Google Maps for '{query}'...")
         
-        # 1. Target URL
-        # For a true grid search, we'd iterate over lat/lng offsets.
-        # For V1, we optimize the search query for high-density results.
+        # --- ADS BOT STEALTH ---
+        # Tricking Google into thinking we are a crawler to bypass JS redirects/blocks
+        await self.page.set_extra_http_headers({"User-Agent": "AdsBot-Google (+http://www.google.com/adsbot.html)"})
+        
         base_url = f"https://www.google.com/maps/search/{query}"
         
         try:
-            await self.page.goto(base_url, timeout=30000)
-            await asyncio.sleep(3) # Maps is heavy
+            await self.page.goto(base_url, timeout=30000, wait_until="networkidle")
             
             # 2. Infinite Scroll to Trigger Load
-            # Scout-01 logic: Scroll the sidebar until no more results appear.
-            print("⏳ Scout-01: Triggering Deep Scroll...")
-            for _ in range(5):
-                await self.page.mouse.wheel(0, 2000)
-                await asyncio.sleep(1)
+            print("⏳ Clarity Pearl: Triggering Deep Scroll for Local Businesses...")
+            scrollable_div = "div[role='feed']"
+            
+            for _ in range(8):
+                # Using a more robust scroll targeting the feed container
+                try:
+                    await self.page.evaluate(f"document.querySelector('{scrollable_div}').scrollBy(0, 1000)")
+                except:
+                    await self.page.mouse.wheel(0, 2000)
+                await asyncio.sleep(1.5)
             
             # 3. Extract Business Data
             leads = await self.page.evaluate("""
@@ -43,17 +48,29 @@ class GoogleMapsGridEngine:
                         const name = item.querySelector('div.fontHeadlineSmall')?.innerText || '';
                         const rating = item.querySelector('span.MW4Y7c')?.innerText || '';
                         const reviews = item.querySelector('span.UY7F9')?.innerText || '';
-                        const address = item.querySelectorAll('div.W4Efsd')[1]?.innerText || '';
+                        
+                        // Smart parsing of address and category
+                        const subInfo = item.querySelectorAll('div.W4Efsd');
+                        let address = '';
+                        let category = '';
+                        if (subInfo.length > 1) {
+                            address = subInfo[1]?.innerText || '';
+                        }
+                        
                         const phone = item.querySelector('span.Us6YCc')?.innerText || '';
+                        const website = item.querySelector('a[aria-label*="website"]')?.href || '';
                         
                         if (name) {
                             results.push({
                                 "name": name,
                                 "rating": rating,
-                                "reviews": reviews,
+                                "reviews_count": parseInt(reviews.replace(/[( )]/g, '')) || 0,
                                 "address": address,
                                 "phone": phone,
-                                "verified": rating > 4.0
+                                "store_url": website,
+                                "category": "directory",
+                                "source_platform": "google_maps",
+                                "verified": parseFloat(rating) >= 4.0
                             });
                         }
                     });
@@ -61,7 +78,7 @@ class GoogleMapsGridEngine:
                 }
             """)
             
-            print(f"✅ Scout-01: Captured {len(leads)} high-intent location leads.")
+            print(f"✅ Clarity Pearl: Captured {len(leads)} local business leads.")
             
             return [{
                 "source": "google_maps",

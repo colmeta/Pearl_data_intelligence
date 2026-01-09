@@ -23,12 +23,15 @@ from scrapers.commerce_watch_engine import CommerceWatchEngine
 from scrapers.real_estate_engine import RealEstateEngine
 from scrapers.job_scout_engine import JobScoutEngine
 from scrapers.reddit_pulse_engine import RedditPulseEngine
+from scrapers.omni_scout_engine import OmniScoutEngine
+from utils.enrichment_bridge import EnrichmentBridge
 from utils.proxy_manager import ProxyManager
 from utils.stealth_v2 import stealth_v2
 from utils.humanizer import Humanizer
 from utils.email_verifier import email_verifier
 from utils.lead_prioritizer import lead_prioritizer
 from backend.routers.slack_relay import send_oracle_alert
+from utils.velocity_engine import velocity_engine
 
 # Try to import Supabase, but don't fail immediately if missing (allows local dev setup)
 try:
@@ -87,6 +90,23 @@ class HydraController:
             except Exception as e:
                 print(f"[{self.worker_id}] Heartbeat Warning: {e}")
             await asyncio.sleep(30)
+
+    async def _handle_enrichment(self, data, platform, page):
+        """
+        Sub-routine to bridge from entity (business) to person (lead).
+        """
+        if platform in ["google_maps", "google_maps_grid", "directory"]:
+            bridge = EnrichmentBridge(page)
+            # Flatten data if it's in a nested list from grid engine
+            flat_leads = []
+            for item in data:
+                if isinstance(item, dict) and 'data' in item:
+                    flat_leads.extend(item['data'])
+                else:
+                    flat_leads.append(item)
+            
+            return await bridge.enrich_business_leads(flat_leads)
+        return data
 
     async def poll_and_claim(self):
         """
@@ -233,54 +253,25 @@ class HydraController:
 
                 final_url = page.url
                 
-                if platform == 'linkedin':
+                # --- PLATFORM DISPATCHER (Refactored) ---
+                if platform == "linkedin":
                     engine = LinkedInEngine(page)
                     data_results = await engine.scrape(query)
-                elif platform == 'google_maps':
+                elif platform in ["google_maps", "google_maps_grid"]:
                     engine = GoogleMapsGridEngine(page)
                     data_results = await engine.scrape(query)
+                elif platform == "directory":
+                    from scrapers.directory_engine import DirectoryEngine
+                    engine = DirectoryEngine(page)
+                    data_results = await engine.scrape(query)
+                elif platform in ["producthunt", "tiktok", "amazon", "shopify", "omni"]:
+                    engine = OmniScoutEngine(page)
+                    data_results = await engine.unified_scout(query)
                 elif platform == 'twitter':
                     engine = TwitterEngine(page)
                     data_results = await engine.scrape(query)
                 elif platform == 'instagram':
                     engine = InstagramEngine(page)
-                    data_results = await engine.scrape(query)
-                elif platform == 'crunchbase':
-                    engine = CrunchbaseEngine(page)
-                    data_results = await engine.scrape(query)
-                elif platform == 'producthunt':
-                    engine = ProductHuntEngine(page)
-                    data_results = await engine.scrape(query)
-                elif platform == 'reddit':
-                    engine = RedditEngine(page)
-                    data_results = await engine.scrape(query)
-                elif platform == 'ycombinator':
-                    engine = YCombinatorEngine(page)
-                    data_results = await engine.scrape(query)
-                elif platform == 'website':
-                    # Assuming WebsiteEngine exists and is imported
-                    # from scrapers.website_engine import WebsiteEngine
-                    # engine = WebsiteEngine(page)
-                    # data_results = await engine.scrape(target_url)
-                    # For now, fallback to generic if WebsiteEngine is not defined
-                    await page.goto(target_url, timeout=30000)
-                    await page.wait_for_load_state("domcontentloaded")
-                    title = await page.title()
-                    data_results = [{
-                        "source_url": page.url,
-                        "title": title,
-                        "timestamp": datetime.now().isoformat(),
-                        "meta_description": await page.evaluate("() => document.querySelector('meta[name=description]')?.content || ''"),
-                        "verified": True if title else False
-                    }]
-                elif platform == 'tiktok':
-                    engine = TikTokEngine(page)
-                    data_results = await engine.scrape(query)
-                elif platform == 'reddit':
-                    engine = RedditPulseEngine(page)
-                    data_results = await engine.scrape(query)
-                elif platform == 'facebook':
-                    engine = FacebookEngineV2(page)
                     data_results = await engine.scrape(query)
                 elif platform in ['google_news', 'news']:
                     engine = NewsPulseEngine(page)
@@ -291,9 +282,20 @@ class HydraController:
                 elif platform in ['job_scout', 'hiring']:
                     engine = JobScoutEngine(page)
                     data_results = await engine.scrape(query)
-                elif platform in ['amazon', 'shopify', 'ecommerce']:
-                    engine = CommerceWatchEngine(page)
+                elif platform == 'facebook':
+                    engine = FacebookEngineV2(page)
                     data_results = await engine.scrape(query)
+                elif platform == 'website':
+                    await page.goto(target_url, timeout=30000)
+                    await page.wait_for_load_state("domcontentloaded")
+                    title = await page.title()
+                    data_results = [{
+                        "source_url": page.url,
+                        "title": title,
+                        "timestamp": datetime.now().isoformat(),
+                        "meta_description": await page.evaluate("() => document.querySelector('meta[name=description]')?.content || ''"),
+                        "verified": True if title else False
+                    }]
                 else:
                     # Default / Fallback generic scraping
                     await page.goto(target_url, timeout=30000)
@@ -307,9 +309,11 @@ class HydraController:
                         "verified": True if title else False
                     }]
 
+                # --- ENRICHMENT BRIDGE ---
                 if data_results:
-                    # For V1 we just take the first or list
-                    scraped_data = data_results[0] if isinstance(data_results, list) and len(data_results) > 0 else {}
+                    data_results = await self._handle_enrichment(data_results, platform, page)
+                    # For V1 we just take the first or the whole list depending on result handling
+                    scraped_data = data_results[0] if isinstance(data_results, list) and len(data_results) > 0 else (data_results if isinstance(data_results, dict) else {})
                     is_verified = scraped_data.get('verified', False)
                 else:
                     is_verified = False
@@ -390,16 +394,33 @@ class HydraController:
                     break
 
             # 1. Insert Result
-            result_payload = {
-                "job_id": job_id,
-                "data_payload": data,
-                "verified": verified,
-                "clarity_score": clarity_score,
-                "intent_score": intent_data.get('intent_score', 0) if intent_data else 0,
-                "oracle_signal": intent_data.get('oracle_signal', 'Baseline') if intent_data else 'Baseline',
-                "predictive_growth_score": intent_data.get('predictive_growth_score', 0) if intent_data else 0,
-                "reasoning": intent_data.get('reasoning', '') if intent_data else ''
-            }
+                # --- PHASE 10: THE SOVEREIGN MIND (Velocity & Displacement) ---
+                velocity_data = {"scaling_signal": "Stable", "growth_rate_pct": 0}
+                displacement_data = {}
+                
+                try:
+                    # Look for previous snapshot for velocity
+                    prev_res = self.supabase.table('data_vault').select("*").eq('email', data.get('email')).limit(1).execute()
+                    if prev_res.data:
+                        velocity_data = velocity_engine.calculate_velocity(prev_res.data[0], data)
+                        
+                        # Generate Displacement Script if we have growth/competitors
+                        displacement_data = await arbiter.generate_sovereign_displacement(data, velocity_data)
+                except Exception as vel_err:
+                    print(f"   ⚠️ Velocity/Displacement calculation failed: {vel_err}")
+
+                result_payload = {
+                    "job_id": job_id,
+                    "data_payload": data,
+                    "verified": verified,
+                    "clarity_score": clarity_score,
+                    "intent_score": intent_data.get('intent_score', 0) if intent_data else 0,
+                    "oracle_signal": intent_data.get('oracle_signal', 'Baseline') if intent_data else 'Baseline',
+                    "predictive_growth_score": intent_data.get('predictive_growth_score', 0) if intent_data else 0,
+                    "reasoning": intent_data.get('reasoning', '') if intent_data else '',
+                    "velocity_data": velocity_data,
+                    "displacement_data": displacement_data
+                }
             res_insert = self.supabase.table('results').insert(result_payload).execute()
             
             if res_insert.data:
@@ -480,7 +501,9 @@ class HydraController:
                         result_id=result_id,
                         signal_text=intent_data.get('oracle_signal'),
                         intent_score=intent_data.get('intent_score'),
-                        lead_data=data
+                        lead_data=data,
+                        velocity_signal=velocity_data.get('scaling_signal'),
+                        displacement_script=displacement_data.get('sovereign_script')
                     ))
 
                 # 6. RECURSIVE FACT-CHECKING (The Sleuth Protocol)
@@ -552,25 +575,59 @@ class HydraController:
             else:
                 await asyncio.sleep(5)
 
+    async def _discover_node_identity(self):
+        """
+        CLARITY PEARL: Node Identity Discovery
+        Fetches the current residential node's geographic and IP profile.
+        """
+        print("🌍 Discovering residential node identity...")
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=10) as client:
+                res = await client.get("https://ipapi.co/json/")
+                if res.status_code == 200:
+                    data = res.json()
+                    self.node_geo = {
+                        "public_ip": data.get("ip"),
+                        "geo_city": data.get("city"),
+                        "geo_country": data.get("country_name"),
+                        "ip_authority": 9.5 if "Residential" in data.get("org", "") or "ISP" in data.get("org", "") else 5.0
+                    }
+                    print(f"🛰️ Node Identified: {self.node_geo['geo_city']}, {self.node_geo['geo_country']} ({self.node_geo['public_ip']})")
+                    return self.node_geo
+        except Exception as e:
+            print(f"⚠️ Node Discovery Failed: {e}")
+            self.node_geo = {"public_ip": "Unknown", "geo_city": "Unknown", "geo_country": "Unknown", "ip_authority": 1.0}
+        return self.node_geo
+
     async def mesh_pulse(self):
         """
         THE DIVINE MESH: Peer-to-Peer stealth coordination.
-        Workers share which proxies are 'burned' and which User-Agents are currently 100% undetected.
+        Now enhanced with Phase 11 Global Swarm Metadata.
         """
         if not self.supabase: return
+        
+        # 1. Discover identity if not already found
+        if not hasattr(self, 'node_geo'):
+            await self._discover_node_identity()
+
         print("🛰️ Divine Mesh: Pulsing coordination data...")
         
-        # Calculate real stealth health based on recent job success
-        # (For now we simulate a small fluctuation around 99%)
         health = 98.0 + (random.random() * 2) 
         
         pulse_data = {
             "worker_id": self.worker_id,
             "stealth_health": round(health, 2),
             "best_user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "active_missions": 1, # Placeholder for concurrent jobs
+            "active_missions": 1,
             "last_pulse": datetime.now().isoformat(),
-            "burned_proxies": self.proxy_manager.banned_proxies if hasattr(self.proxy_manager, 'banned_proxies') else []
+            "burned_proxies": self.proxy_manager.banned_proxies if hasattr(self.proxy_manager, 'banned_proxies') else [],
+            # Phase 11 Swarm Data
+            "node_type": "residential",
+            "public_ip": self.node_geo.get("public_ip"),
+            "geo_city": self.node_geo.get("geo_city"),
+            "geo_country": self.node_geo.get("geo_country"),
+            "ip_authority_score": self.node_geo.get("ip_authority")
         }
         try:
              self.supabase.table('worker_status').upsert(pulse_data).execute()

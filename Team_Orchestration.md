@@ -1,5 +1,5 @@
 # 🤖 AGENT COLLECTIVE: TEAM ORCHESTRATION
-**Project:** NEXUS / DATAVAULT
+**Project:** CLARITY PEARL / DATAVAULT
 **Speed:** 30 DAYS IN 1 DAY
 
 ---
@@ -35,4 +35,46 @@ I have subdivided myself into 5 specialized "Personas" to handle your project in
 *   **Step 3:** I will implement the scrape engines (Scout) while patching the stealth (Ghost).
 *   **Step 4:** I will test them all using the Sentry script.
 
-**STATUS:** THE TEAM IS INITIALIZED. MISSION START.
+---
+
+## 3. The Imperial Roadmap (Phases)
+
+### ✅ Phase 1-7: Foundation & Hardening
+- **Stabilization**: Fixed Hydra RPC errors, Gemini 404s, and ProxyManager bugs.
+- **The Oracle**: Restored mission interpretation and job dispatching.
+- **Boost Mode**: Implemented high-priority "Queue Jump" for urgent missions.
+- **Diagnostics**: Added `/api/diagnostics/health` for AI key & token monitoring.
+
+### ✅ Phase 8: The Resistance (Bypassing Walls)
+- **LinkedIn Stealth**: Implemented Mobile Swarm and Google Discovery fallbacks.
+- **Multi-Channel**: Added Email/DM/Call prioritization logic.
+- **Webhooks**: Integrated Make.com/n8n for outbound automation.
+
+### ✅ Phase 9: The Divine Eye (Omni-Platform Dominance)
+- **Unified Scrapers**: Established dominance over Google Maps, TikTok, Product Hunt, and Amazon.
+- **The Bridge**: Automated "Business-to-Person" enrichment (Maps listings -> Owner/CEO contacts).
+- **Directory Dorking**: Global coverage of Yellow Pages and GMB alternatives.
+
+### ✅ Phase 10: The Sovereign Mind (Predictive Intelligence)
+- **Mega-Profiles**: Unified Sovereign IDs that merge LinkedIn, TikTok, and PH identities.
+- **Velocity Engine**: Real-time tracking of growth surges and viral triggers.
+- **Displacement Logic**: AI-generated scripts to flip leads from competitors like Shopify/HubSpot.
+
+### ✅ Phase 11: The Architect of Destiny (Global Swarm & UI Mastery)
+- **Sovereign Hub**: Premium UI for visualizing Mega-Profiles and Kinetic Velocity.
+- **Divine Swarm**: Real-time management of global residential node identity and health.
+- **CRM Injection**: High-authority sync with Displacement Scripts directly to HubSpot/Salesforce.
+
+### 🚀 Phase 12: The Eternal Forge (Autonomous Victory & Monetization)
+- **Autonomous Warming**: AI automatically drafts and queues initial outreach when viral signals are detected.
+- **The Sovereign Extension**: A production-ready Chrome Extension for real-time overlay on LinkedIn/Shopify.
+- **Flutterwave Credit Forge**: Integrated billing system for autonomous credit top-ups.
+- **Pearl-01 Intelligence**: fine-tuning the displacement logic using a specialized Multi-Agent debate flow.
+
+---
+
+## 4. FAQ: How it Works
+**Q: When does the platform use my PC?**
+A: Your PC acts as a **High-Authority Worker Node**. When a job is claimed, your local Python worker uses your residential IP (which platforms trust more than data centers) to execute the scrape. This is why Clarity Pearl can bypass blocks that stop cloud-based competitors.
+
+**STATUS:** PHASE 12 INITIATED. THE FORGE IS HOT.

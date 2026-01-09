@@ -25,9 +25,10 @@ async def setup_slack(
     
     return {"status": "success", "message": "Slack Relay Activated."}
 
-async def send_oracle_alert(org_id, result_id, signal_text, intent_score, lead_data=None):
+async def send_oracle_alert(org_id, result_id, signal_text, intent_score, lead_data=None, velocity_signal=None, displacement_script=None):
     """
     The Invisible Hand in action: Relays high-value Oracle signals to Slack with rich formatting.
+    Now includes Phase 10 displacement and velocity data.
     """
     supabase = get_supabase()
     org_res = supabase.table('organizations').select('slack_webhook', 'name').eq('id', org_id).execute()
@@ -41,58 +42,70 @@ async def send_oracle_alert(org_id, result_id, signal_text, intent_score, lead_d
     # Extract lead details
     name = lead_data.get('name') or lead_data.get('full_name') or "Unknown Lead"
     company = lead_data.get('company') or lead_data.get('organization') or "Unknown Entity"
-    title = lead_data.get('title') or lead_data.get('position') or "N/A"
     
     # Progress bar for intent
     filled = int(intent_score / 10)
     bar = "🔵" * filled + "⚪" * (10 - filled)
 
-    payload = {
-        "blocks": [
-            {
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": "🔮 ORACLE SIGNAL DETECTED",
-                    "emoji": True
-                }
-            },
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*Signal:* _{signal_text}_\n*Intent:* `{intent_score}%` {bar}\n*Entity:* *{name}* @ *{company}* ({title})"
-                }
-            },
-            {
-                "type": "divider"
-            },
-            {
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "View in DataVault",
-                            "emoji": True
-                        },
-                        "url": f"https://datavault.app/results/{result_id}",
-                        "style": "primary"
-                    }
-                ]
-            },
-            {
-                "type": "context",
-                "elements": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"🛡️ *Vault:* {org_name} | *Status:* Stealth Active"
-                    }
-                ]
+    blocks = [
+        {
+            "type": "header",
+            "text": {
+                "type": "plain_text",
+                "text": "🔮 CLARITY PEARL: SOVEREIGN SIGNAL",
+                "emoji": True
             }
-        ]
-    }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"*Signal:* _{signal_text}_\n*Intent:* `{intent_score}%` {bar}\n*Velocity:* `{velocity_signal or 'Steady'}`\n*Entity:* *{name}* @ *{company}*"
+            }
+        }
+    ]
+
+    # Add Displacement Script if present
+    if displacement_script:
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"🧠 *Sovereign Displacement Script:*\n```{displacement_script}```"
+            }
+        })
+
+    blocks.extend([
+        {
+            "type": "divider"
+        },
+        {
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "View Sovereign ID",
+                        "emoji": True
+                    },
+                    "url": f"https://claritypearl.app/results/{result_id}",
+                    "style": "primary"
+                }
+            ]
+        },
+        {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": f"🛡️ *Vault:* {org_name} | *Status:* Phase 10 Sovereign Mind Active"
+                }
+            ]
+        }
+    ])
+    
+    payload = {"blocks": blocks}
     
     try:
         async with httpx.AsyncClient() as client:

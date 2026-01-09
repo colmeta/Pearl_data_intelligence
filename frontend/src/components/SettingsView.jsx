@@ -5,6 +5,7 @@ export default function SettingsView({ session }) {
     const [org, setOrg] = useState(null)
     const [apiKey, setApiKey] = useState('')
     const [slackUrl, setSlackUrl] = useState('')
+    const [workers, setWorkers] = useState([])
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
 
@@ -27,6 +28,10 @@ export default function SettingsView({ session }) {
             if (keys?.length > 0) {
                 setApiKey('••••••••••••••••')
             }
+
+            // 3. Fetch Swarm Status
+            const { data: workerData } = await supabase.from('worker_status').select('*').order('last_pulse', { ascending: false })
+            if (workerData) setWorkers(workerData)
         }
         setLoading(false)
     }
@@ -89,6 +94,85 @@ export default function SettingsView({ session }) {
                         <button onClick={generateKey} className="btn-primary" style={{ fontSize: '0.7rem' }}>ROTATE KEY</button>
                     </div>
                     <p style={{ fontSize: '0.7rem', opacity: 0.4 }}>Use this key to integrate the Intelligence Vault into your 3rd party applications.</p>
+                </div>
+            </div>
+
+            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.05)', margin: '3rem 0' }} />
+
+            {/* DIVINE SWARM orchestration */}
+            <div style={{ marginBottom: '3rem' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 900, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    🛰️ DIVINE SWARM (RESIDENTIAL NODES)
+                    <span style={{ fontSize: '0.6rem', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', padding: '2px 8px', borderRadius: '10px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>GLOBAL SYNC ACTIVE</span>
+                </h3>
+                <p style={{ fontSize: '0.8rem', opacity: 0.5, marginBottom: '2rem' }}>Monitor and manage the geographic distribution of your high-authority scraping swarm.</p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                    {workers.length === 0 ? (
+                        <div style={{ gridColumn: '1/-1', padding: '3rem', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', color: 'rgba(255,255,255,0.2)' }}>
+                            No active nodes detected. Ensure your local worker is running.
+                        </div>
+                    ) : (
+                        workers.map(w => (
+                            <div key={w.worker_id} className="supreme-glass" style={{ padding: '1.5rem', position: 'relative' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                                    <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{w.worker_id}</div>
+                                    <div style={{
+                                        width: '8px', height: '8px', borderRadius: '50%',
+                                        background: (new Date() - new Date(w.last_pulse)) < 60000 ? '#22c55e' : '#ef4444',
+                                        boxShadow: (new Date() - new Date(w.last_pulse)) < 60000 ? '0 0 10px #22c55e' : 'none'
+                                    }}></div>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.75rem' }}>
+                                    <div style={{ opacity: 0.4 }}>LOCATION: <span style={{ color: '#fff' }}>{w.geo_city || 'Unknown'}, {w.geo_country || 'Earth'}</span></div>
+                                    <div style={{ opacity: 0.4 }}>RESIDENTIAL IP: <span style={{ color: '#fff' }}>{w.public_ip || 'Masked'}</span></div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                                        <span style={{ opacity: 0.4 }}>STEALTH HEALTH</span>
+                                        <span style={{ color: w.stealth_health > 90 ? '#22c55e' : '#f59e0b', fontWeight: 900 }}>{w.stealth_health}%</span>
+                                    </div>
+                                    <div style={{ height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
+                                        <div style={{ width: `${w.stealth_health}%`, height: '100%', background: w.stealth_health > 90 ? '#22c55e' : '#f59e0b' }}></div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.05)', margin: '3rem 0' }} />
+
+            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.05)', margin: '3rem 0' }} />
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
+                {/* AUTO-WARMER CONTROL */}
+                <div>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 900, marginBottom: '0.5rem' }}>🔥 THE ARCHITECT'S FORGE (AUTO-WARMING)</h3>
+                    <p style={{ fontSize: '0.8rem', opacity: 0.5, marginBottom: '1.5rem' }}>Pearl automatically drafts outbound scripts when viral growth (>50%) is detected.</p>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{
+                            width: '40px', height: '24px', background: '#22c55e', borderRadius: '12px',
+                            position: 'relative', cursor: 'pointer', opacity: 0.8
+                        }}>
+                            <div style={{ width: '18px', height: '18px', background: '#fff', borderRadius: '50%', position: 'absolute', top: '3px', right: '3px' }}></div>
+                        </div>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#22c55e' }}>AUTONOMOUS MODE ACTIVE</span>
+                    </div>
+                </div>
+
+                {/* FLUTTERWAVE BILLING */}
+                <div>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 900, marginBottom: '0.5rem' }}>💰 FLUTTERWAVE CREDIT FORGE</h3>
+                    <p style={{ fontSize: '0.8rem', opacity: 0.5, marginBottom: '1.5rem' }}>Instantly top up your scraping capacity using local currency or USD.</p>
+
+                    <button
+                        onClick={() => alert("FLUTTERWAVE BRIDGE: Initializing Secure Sandbox Payment... (Phase 12 Verification required)")}
+                        className="btn-primary"
+                        style={{ background: 'linear-gradient(90deg, #fbbf24, #f59e0b)', border: 'none', color: '#000' }}
+                    >
+                        TOP UP CREDITS (FLUTTERWAVE)
+                    </button>
                 </div>
             </div>
 

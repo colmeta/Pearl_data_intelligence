@@ -135,7 +135,6 @@ class ArbiterAgent:
     async def recursive_verdict(self, lead_data):
         """
         THE SLEUTH: Generate a follow-up verification query.
-        If we found them on LinkedIn, maybe check for a recent News event or a Website mention.
         """
         prompt = f"""
         LEAD DATA: {lead_data}
@@ -147,10 +146,107 @@ class ArbiterAgent:
         Return ONLY the query string.
         """
         try:
-             # We reuse the same model for speed/cost
              response = await gemini_client.model.generate_content(prompt)
              return response.text.strip()
         except:
              return f"verify {lead_data.get('name')} {lead_data.get('company')}"
+
+    async def _pearl_01_debate(self, context_prompt: str, initial_script: str) -> str:
+        """
+        PEARL-01: Multi-Agent Debate Flow.
+        Refines a script by running a 'Critic' agent against a 'Creative' agent.
+        """
+        print("🏛️ PEARL-01: Initiating internal debate flow...")
+        
+        critic_prompt = f"""
+        {context_prompt}
+        
+        YOU ARE THE CRITIC (PEARL-01-SKEPTIC).
+        Analyze the following outreach script and find 3 reasons why it might be ignored or seen as spam.
+        Be brutal. Identify weak language, lack of specific value, or poor timing.
+        
+        SCRIPT: "{initial_script}"
+        
+        Return ONLY your bulleted critique.
+        """
+        try:
+            critic_res = await gemini_client.model.generate_content(critic_prompt)
+            critique = critic_res.text.strip()
+            print(f"🧐 Critic Signal: {critique[:100]}...")
+
+            refinement_prompt = f"""
+            {context_prompt}
+            
+            YOU ARE THE ARCHITECT (PEARL-01-FINAL).
+            We have an initial script and a critical review.
+            
+            INITIAL SCRIPT: "{initial_script}"
+            CRITIQUE: "{critique}"
+            
+            TASK: Re-forge the script to address all criticisms while maintaining high authority and conversion-focus.
+            Make it tighter, more 'Sovereign', and undeniable.
+            
+            Return ONLY the final refined script.
+            """
+            final_res = await gemini_client.model.generate_content(refinement_prompt)
+            return final_res.text.strip()
+        except Exception as e:
+            print(f"⚠️ Pearl-01 Debate Interrupted: {e}")
+            return initial_script
+
+    async def generate_sovereign_displacement(self, lead_data: dict, growth_velocity: dict) -> dict:
+        """
+        CLARITY PEARL: SOVEREIGN INTELLIGENCE - PEARL-01 ENHANCED
+        Generates a displacement script, then runs a Pearl-01 Debate to refine it.
+        """
+        print(f"🧠 Sovereign Intelligence: Analyzing displacement for {lead_data.get('name')}...")
+        
+        metadata = lead_data.get('metadata', {})
+        tech_signals = str(metadata).lower()
+        
+        competitors = []
+        if "shopify" in tech_signals: competitors.append("Shopify")
+        if "hubspot" in tech_signals: competitors.append("HubSpot")
+        if "salesforce" in tech_signals: competitors.append("Salesforce")
+        if "stripe" in tech_signals: competitors.append("Stripe")
+        
+        if not competitors:
+            return {"status": "no_competitor_detected", "script": ""}
+
+        context_prompt = f"""
+        CLARITY PEARL: SOVEREIGN INTELLIGENCE - DISPLACEMENT MISSION
+        LEAD: {lead_data.get('name')} from {lead_data.get('company')}
+        COMPETITORS DETECTED: {', '.join(competitors)}
+        GROWTH VELOCITY: {growth_velocity.get('scaling_signal', 'Steady')}
+        """
+
+        prompt = f"""
+        {context_prompt}
+        
+        TASK:
+        Generate a high-authority, non-spammy outreach script that points out a friction point 
+        with their current stack (the competitors) and suggests how our solution solves it.
+        Use their growth velocity as a 'Growth Agitator'.
+        
+        Return ONLY a JSON object:
+        {{
+            "displacement_target": "The competitor to target",
+            "friction_point": "Why the competitor is failing them during growth",
+            "sovereign_script": "The draft outreach message"
+        }}
+        """
+        try:
+            response = await gemini_client.model.generate_content(prompt)
+            clean_json = re.sub(r'```json\n?|\n?```', '', response.text).strip()
+            data = json.loads(clean_json)
+            
+            # PEARL-01 DEBATE: Refine the script
+            refined_script = await self._pearl_01_debate(context_prompt, data.get('sovereign_script', ''))
+            data['sovereign_script'] = refined_script
+            
+            return data
+        except Exception as e:
+            print(f"❌ Sovereign Displacement Error: {e}")
+            return {"status": "error", "message": str(e)}
 
 arbiter = ArbiterAgent()

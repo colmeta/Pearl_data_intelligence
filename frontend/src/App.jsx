@@ -8,12 +8,13 @@ import ResultsView from './components/ResultsView'
 import AnalyticsLab from './components/AnalyticsLab'
 import OracleControl from './components/OracleControl'
 import SettingsView from './components/SettingsView'
+import SovereignHub from './components/SovereignHub'
 import CompliancePortal from './pages/CompliancePortal'
 import './styles/supreme.css'
 
 function App() {
     const [path, setPath] = useState(window.location.pathname)
-    const [view, setView] = useState('vault') // 'vault' or 'settings'
+    const [view, setView] = useState('sovereign') // 'sovereign', 'vault', or 'settings'
     const [session, setSession] = useState(null)
     const [loading, setLoading] = useState(true)
     const [showAdvanced, setShowAdvanced] = useState(false)
@@ -81,6 +82,15 @@ function App() {
         <Layout session={session}>
             <div style={{ marginBottom: '2rem', display: 'flex', gap: '2rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }} className="tab-navigation">
                 <button
+                    onClick={() => setView('sovereign')}
+                    style={{
+                        background: 'none', border: 'none', padding: '1rem 0', color: view === 'sovereign' ? 'hsl(var(--pearl-primary))' : 'rgba(255,255,255,0.4)',
+                        fontWeight: 900, cursor: 'pointer', borderBottom: view === 'sovereign' ? '2px solid hsl(var(--pearl-primary))' : 'none'
+                    }}
+                >
+                    🧠 SOVEREIGN HUB
+                </button>
+                <button
                     onClick={() => setView('vault')}
                     style={{
                         background: 'none', border: 'none', padding: '1rem 0', color: view === 'vault' ? 'hsl(var(--pearl-primary))' : 'rgba(255,255,255,0.4)',
@@ -100,7 +110,16 @@ function App() {
                 </button>
             </div>
 
-            {view === 'vault' ? (
+            {view === 'sovereign' ? (
+                <div style={{ display: 'grid', gap: '2rem' }} className="main-grid">
+                    <div className="main-content">
+                        <SovereignHub />
+                    </div>
+                    <div className="sidebar">
+                        <LiveFeed />
+                    </div>
+                </div>
+            ) : view === 'vault' ? (
                 <div style={{ display: 'grid', gap: '2rem' }} className="main-grid">
                     <div className="main-content">
                         {/* ORACLE CONTROL - PRIMARY INTERFACE */}

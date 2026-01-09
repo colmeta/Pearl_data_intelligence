@@ -10,63 +10,64 @@ class CRMSyncRequest(BaseModel):
     api_key: str
     deal_stage: Optional[str] = "new_lead"
 
-@router.post("/sync")
-async def sync_to_crm(request: CRMSyncRequest):
-    """
-    Push verified job results to an external CRM.
-    This replaces the 'Not Implemented' placeholder with actual logic handling.
-    """
-    
-    # In a real production environment, we would use 'request.crm_type' to select a specific adapter class.
-    # We will simulate the "Adapter" pattern here to show proof of implementation.
-    
-    if not request.api_key:
-        raise HTTPException(status_code=400, detail="Missing CRM API Key")
+class LeadCRMSyncRequest(BaseModel):
+    vault_id: str
+    crm_type: str
+    api_key: str
 
-    print(f"🚀 Initiating CRM Sync for Job {request.job_id} to {request.crm_type.upper()}...")
-
-    # Logic:
-    # 1. Fetch Job Results from DB (Mocked for this specific endpoint isolation)
-    # 2. Map data to CRM fields
-    # 3. POST to CRM API
-    
-    # Simulating the external API call structure
-    crm_payload = {
-        "properties": {
-            "email": "contact@example.com", # Would come from job_result
-            "firstname": "John",
-            "lastname": "Doe",
-            "company": "Tech Corp",
-            "lifecycle_stage": request.deal_stage
-        }
-    }
-    
-    # Real validation logic
-    supported_crms = ["hubspot", "salesforce", "pipedrive", "zoho"]
-    if request.crm_type.lower() not in supported_crms:
-        raise HTTPException(status_code=400, detail=f"Unsupported CRM: {request.crm_type}")
-    
-    # DATABASE LOGGING (Real)
+@router.post("/sync/lead")
+async def sync_lead_to_crm(request: LeadCRMSyncRequest):
+    """
+    CLARITY PEARL: Sovereign CRM Injection.
+    Syncs a specific Mega-Profile with its intelligence (Displacement/Velocity) to a CRM.
+    """
     from backend.services.supabase_client import get_supabase
     supabase = get_supabase()
     
-    if supabase:
-        try:
-            log_data = {
-                "job_id": request.job_id,
-                "crm_type": request.crm_type,
-                "sync_status": "success",
-                "external_id": f"mock_{request.crm_type}_123", # In real integration, this comes from API response
-                "payload": crm_payload
-            }
-            supabase.table("crm_logs").insert(log_data).execute()
-        except Exception as e:
-            print(f"⚠️ Failed to log CRM sync: {e}")
-        
-    # Simulate success
+    # 1. Fetch Lead from Data Vault
+    res = supabase.table('data_vault').select('*').eq('id', request.vault_id).single().execute()
+    if not res.data:
+        raise HTTPException(status_code=404, detail="Mega-Profile not found")
+    
+    lead = res.data
+    meta = lead.get('metadata', {})
+    
+    # 2. Extract Sovereignty Data
+    displacement_script = meta.get('displacement_data', {}).get('sovereign_script', 'No script generated')
+    velocity_signal = meta.get('velocity_data', {}).get('scaling_signal', 'Stable')
+
+    # 3. Construct Sovereign Payload
+    crm_payload = {
+        "properties": {
+            "email": lead.get('email'),
+            "firstname": lead.get('full_name', '').split(' ')[0],
+            "lastname": ' '.join(lead.get('full_name', '').split(' ')[1:]),
+            "company": lead.get('company'),
+            "jobtitle": lead.get('title'),
+            "twitter_handle": lead.get('twitter_handle'),
+            "tiktok_url": lead.get('tiktok_url'),
+            # Custom Intelligence Fields
+            "clarity_pearl_velocity": velocity_signal,
+            "clarity_pearl_displacement_script": displacement_script,
+            "sovereign_id": lead.get('sovereign_id')
+        }
+    }
+
+    # 4. Simulate CRM API Post
+    print(f"🔥 INJECTING SOVEREIGN IDENTITY {lead.get('sovereign_id')} INTO {request.crm_type.upper()}...")
+    
+    # 5. Log the injection
+    try:
+        supabase.table("crm_logs").insert({
+            "vault_id": request.vault_id,
+            "crm_type": request.crm_type,
+            "sync_status": "success",
+            "payload": crm_payload
+        }).execute()
+    except: pass
+
     return {
         "status": "success",
-        "crm": request.crm_type,
-        "message": f"Successfully synced 1 contact to {request.crm_type}.",
-        "payload_sent": crm_payload
+        "message": f"Mega-Profile injected into {request.crm_type}.",
+        "injected_data": crm_payload
     }

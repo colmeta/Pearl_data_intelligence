@@ -15,13 +15,15 @@ if __name__ == "__main__":
     # 1 worker, limited concurrency to keep memory < 400MB
     uvicorn.run(app, host="0.0.0.0", port=8000, workers=1, limit_concurrency=20)
 
-# --- DIVINE SERVICES (Phase 7) ---
+# --- DIVINE SERVICES (Phase 7 & 12) ---
 from backend.services.hive_sentry import hive_sentry
+from backend.services.auto_warmer import auto_warmer
 import asyncio
 
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(hive_sentry.start())
+    asyncio.create_task(auto_warmer.start())
 
 # --- CORS CONFIGURATION ---
 app.add_middleware(
@@ -51,9 +53,11 @@ app.include_router(slack_relay.router)
 app.include_router(organization_onboarding.router)
 app.include_router(diagnostics.router)
 
-# White-Label API (Phase 6)
-from backend.routers import v1
+# White-Label API & Phase 12 Bridge
+from backend.routers import v1, extension_bridge, flutterwave_router
 app.include_router(v1.router)
+app.include_router(extension_bridge.router)
+app.include_router(flutterwave_router.router)
 
 # --- ROOT ENDPOINT ---
 @app.get("/")

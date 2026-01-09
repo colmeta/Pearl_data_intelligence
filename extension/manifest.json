@@ -1,21 +1,28 @@
 {
     "manifest_version": 3,
-    "name": "The Invisible Hand (Clarity Pearl)",
-    "version": "1.0",
-    "description": "Launch intelligence missions directly from your browser context menu.",
+    "name": "Clarity Pearl: The Sovereign Extension",
+    "version": "1.0.0",
+    "description": "The Invisible Hand of Market Intelligence.",
     "permissions": [
-        "contextMenus",
-        "activeTab"
+        "activeTab",
+        "storage"
+    ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": "icon.png"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.linkedin.com/in/*",
+                "https://*.myshopify.com/*"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
     ],
     "background": {
         "service_worker": "background.js"
-    },
-    "action": {
-        "default_title": "Send to Vault"
-    },
-    "icons": {
-        "16": "icon16.png",
-        "48": "icon48.png",
-        "128": "icon128.png"
     }
 }
