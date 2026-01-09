@@ -40,10 +40,20 @@ async def dispatch_mission(
     print(f"🔮 The Oracle is interpreting mission: {req.prompt[:50]}...")
     
     # 1. Interpret Mission via Gemini
-    jobs_to_create = await gemini_client.dispatch_mission(req.prompt)
+    try:
+        jobs_to_create = await gemini_client.dispatch_mission(req.prompt)
+    except Exception as e:
+        print(f"⚠️ Oracle AI failed: {e}")
+        jobs_to_create = []
     
+    # Fallback: If AI fails or returns empty, create a simple job from the prompt
     if not jobs_to_create:
-         raise HTTPException(status_code=422, detail="The Oracle could not derive a mission from your prompt.")
+        print(f"💡 Oracle fallback: Creating direct job from prompt")
+        jobs_to_create = [{
+            "query": req.prompt,
+            "platform": "linkedin" if "linkedin" in req.prompt.lower() else "generic",
+            "reasoning": "Direct query (Oracle AI unavailable)"
+        }]
 
     # 2. Verify Credits
     org_res = supabase.table('organizations').select('credits_monthly', 'credits_used').eq('id', org_id).execute()
