@@ -21,7 +21,7 @@ class GeminiClient:
             print("⚠️ Warning: Neither GEMINI_API_KEY nor GROQ_API_KEY found.")
         
         # Models
-        self.gemini_model = 'gemini-1.5-flash-latest'
+        self.gemini_model = 'gemini-1.5-flash'
         self.groq_model = 'llama-3.1-8b-instant' # Faster and more reliable
         
         self.gemini_url = "https://generativelanguage.googleapis.com/v1beta/models"
