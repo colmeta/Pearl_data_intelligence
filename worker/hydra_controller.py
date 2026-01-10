@@ -211,8 +211,8 @@ class HydraController:
             )
             page = await context.new_page()
             
-            # Anti-detect script injection V2
-            if stealth_profile == "stealth":
+            # Anti-detect script injection V2 (Applying to ALL profiles for Maximum Capacity)
+            if stealth_profile in ["stealth", "mobile", "aggressive"]:
                 await stealth_v2.apply_advanced_stealth(page)
             
             try:
@@ -562,28 +562,29 @@ class HydraController:
                     self.last_mesh_pulse = datetime.now()
 
                 # --- LAB: A/B/C STRATEGY SWITCHER ---
-                if ab_test_group == 'C':
+                # FORCE STRATEGY C: THE SWARM (Mobile) - User Requested Maximum Capacity
+                if True: # Force Mobile Swarm
                     # Strategy C: The Swarm (Mobile Logic)
-                    print(f"[{self.worker_id}] 🧪 Lab Mode: Engaging STRATEGY C (The Swarm - Mobile)")
+                    print(f"[{self.worker_id}] 🧪 Lab Mode: Engaging STRATEGY C (The Swarm - Mobile) [FORCED]")
                     launch_args = [
                         "--disable-blink-features=AutomationControlled",
                         "--no-sandbox"
                     ]
                     stealth_profile = "mobile"
-                elif ab_test_group == 'B':
-                    # Strategy B: High Speed / Low Delay (Aggressive)
-                    print(f"[{self.worker_id}] 🧪 Lab Mode: Engaging STRATEGY B (Aggressive)")
-                    launch_args = ["--disable-blink-features=AutomationControlled"]
-                    stealth_profile = "aggressive"
-                else:
-                    # Strategy A: High Stealth / High Delay (Control)
-                    print(f"[{self.worker_id}] 🧪 Lab Mode: Engaging STRATEGY A (Stealth)")
-                    launch_args = [
-                        "--disable-blink-features=AutomationControlled",
-                        "--no-sandbox",
-                        "--disable-setuid-sandbox"
-                    ] # stealth_v2 will add specific args
-                    stealth_profile = "stealth"
+                # elif ab_test_group == 'B':
+                #     # Strategy B: High Speed / Low Delay (Aggressive)
+                #     print(f"[{self.worker_id}] 🧪 Lab Mode: Engaging STRATEGY B (Aggressive)")
+                #     launch_args = ["--disable-blink-features=AutomationControlled"]
+                #     stealth_profile = "aggressive"
+                # else:
+                #     # Strategy A: High Stealth / High Delay (Control)
+                #     print(f"[{self.worker_id}] 🧪 Lab Mode: Engaging STRATEGY A (Stealth)")
+                #     launch_args = [
+                #         "--disable-blink-features=AutomationControlled",
+                #         "--no-sandbox",
+                #         "--disable-setuid-sandbox"
+                #     ] # stealth_v2 will add specific args
+                #     stealth_profile = "stealth"
 
                 await self.process_job_with_browser(job_id, query, platform, compliance, launch_args, stealth_profile)
             else:
