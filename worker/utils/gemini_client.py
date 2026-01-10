@@ -24,7 +24,7 @@ class GeminiClient:
         self.gemini_model = 'gemini-1.5-flash'
         self.groq_model = 'llama3-8b-8192' # Fast and free-tier friendly
         
-        self.gemini_url = "https://generativelanguage.googleapis.com/v1/models"
+        self.gemini_url = "https://generativelanguage.googleapis.com/v1beta/models"
         self.groq_url = "https://api.groq.com/openai/v1/chat/completions"
 
     def _call_gemini(self, prompt, image_path=None):
