@@ -12,6 +12,7 @@ class GeminiClient:
     """
     CLARITY PEARL ARBITER - MULTI-AI INTEGRATION
     Optimized for modern Google GenAI SDK and Groq.
+    Now with persistent model fallback.
     """
     
     def __init__(self):
@@ -23,7 +24,9 @@ class GeminiClient:
         
         if self.gemini_key:
             self.client = genai.Client(api_key=self.gemini_key)
-            self.model_id = 'gemini-1.5-flash'
+            # We'll try these in order
+            self.model_candidates = ['gemini-1.5-flash-8b', 'gemini-1.5-flash', 'gemini-2.0-flash-exp']
+            self.model_id = self.model_candidates[0]
         
         # Groq Fallback
         self.groq_model = 'llama-3.1-8b-instant'
@@ -31,28 +34,40 @@ class GeminiClient:
 
     def _call_gemini(self, prompt, image_path=None):
         if not self.gemini_key: return None
-        try:
-            if image_path and os.path.exists(image_path):
-                with open(image_path, "rb") as f:
-                    image_data = f.read()
+        
+        # Try candidates until success
+        for model in self.model_candidates:
+            try:
+                if image_path and os.path.exists(image_path):
+                    with open(image_path, "rb") as f:
+                        image_data = f.read()
+                    
+                    response = self.client.models.generate_content(
+                        model=model,
+                        contents=[
+                            prompt,
+                            {"mime_type": "image/png", "data": base64.b64encode(image_data).decode('utf-8')}
+                        ]
+                    )
+                else:
+                    response = self.client.models.generate_content(
+                        model=model,
+                        contents=prompt
+                    )
                 
-                response = self.client.models.generate_content(
-                    model=self.model_id,
-                    contents=[
-                        prompt,
-                        {"mime_type": "image/png", "data": base64.b64encode(image_data).decode('utf-8')}
-                    ]
-                )
-            else:
-                response = self.client.models.generate_content(
-                    model=self.model_id,
-                    contents=prompt
-                )
-            
-            return response.text
-        except Exception as e:
-            print(f"[X] Gemini SDK Error: {e}")
-            return None
+                # If we succeeded, we can potentially remember this model_id
+                self.model_id = model
+                return response.text
+            except Exception as e:
+                # If it's a 404 or unsupported, try next
+                if "404" in str(e) or "not found" in str(e).lower():
+                    print(f"⚠️ Gemini Model '{model}' not found. Trying fallback...")
+                    continue
+                print(f"[X] Gemini SDK Error ({model}): {e}")
+                # For other errors, we might still want to try fallback or just break
+                continue
+        
+        return None
 
     def _call_groq(self, prompt):
         if not self.groq_key: return None

@@ -1,4 +1,4 @@
--- Migration to add ALL missing columns to worker_status for Phase 11 Swarm Swarm
+-- Migration to add ALL missing columns to worker_status for Phase 11 Swarm Coordination
 DO $$
 BEGIN
     -- best_user_agent
@@ -6,6 +6,21 @@ BEGIN
         ALTER TABLE public.worker_status ADD COLUMN best_user_agent TEXT;
     END IF;
     
+    -- burned_proxies
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'worker_status' AND column_name = 'burned_proxies') THEN
+        ALTER TABLE public.worker_status ADD COLUMN burned_proxies TEXT[] DEFAULT '{}';
+    END IF;
+
+    -- active_missions
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'worker_status' AND column_name = 'active_missions') THEN
+        ALTER TABLE public.worker_status ADD COLUMN active_missions INT DEFAULT 0;
+    END IF;
+
+    -- stealth_health
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'worker_status' AND column_name = 'stealth_health') THEN
+        ALTER TABLE public.worker_status ADD COLUMN stealth_health FLOAT DEFAULT 100.0;
+    END IF;
+
     -- node_type
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'worker_status' AND column_name = 'node_type') THEN
         ALTER TABLE public.worker_status ADD COLUMN node_type TEXT DEFAULT 'residential';
@@ -31,6 +46,6 @@ BEGIN
         ALTER TABLE public.worker_status ADD COLUMN ip_authority_score FLOAT DEFAULT 1.0;
     END IF;
 
-    -- Notify PostgREST to reload schema (optional but helpful in some environments)
+    -- Notify PostgREST to reload schema
     NOTIFY pgrst, 'reload schema';
 END $$;
