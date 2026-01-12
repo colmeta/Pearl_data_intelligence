@@ -34,8 +34,7 @@ class ArbiterAgent:
             print(f"Arbiter Vision-X: Analyzing sensory evidence {screenshot_path}...")
             ai_response = await gemini_client.analyze_visuals(target_query, screenshot_path)
             if ai_response:
-                # Basic JSON sanitization
-                clean_json = re.sub(r'```json\n?|\n?```', '', ai_response).strip()
+                clean_json = gemini_client._clean_json(ai_response)
                 ai_data = json.loads(clean_json)
                 return ai_data.get('truth_score', 0), ai_data.get('verdict', "Vision Verdict")
         except Exception as e:
@@ -123,7 +122,7 @@ class ArbiterAgent:
             if not ai_response_text:
                 raise ValueError("Empty response from AI")
             
-            clean_json = re.sub(r'```json\n?|\n?```', '', ai_response_text).strip()
+            clean_json = gemini_client._clean_json(ai_response_text)
             return json.loads(clean_json)
         except Exception as e:
             print(f"[X] Oracle Predictive Error: {e}")
@@ -243,7 +242,7 @@ class ArbiterAgent:
             if not response_text:
                 return {"status": "error", "message": "No AI response"}
 
-            clean_json = re.sub(r'```json\n?|\n?```', '', response_text).strip()
+            clean_json = gemini_client._clean_json(response_text)
             data = json.loads(clean_json)
             
             # PEARL-01 DEBATE: Refine the script

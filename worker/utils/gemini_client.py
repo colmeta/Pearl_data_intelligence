@@ -43,8 +43,13 @@ class GeminiClient:
                 print(f"❌ Gemini SDK Init Error: {e}")
                 self.gemini_key = None
         
-        # Groq Fallback (High Reliability Tier)
-        self.groq_model = 'llama-3.1-8b-instant'
+        # Groq Fallback Tier (Multi-Model Rotation)
+        self.groq_candidates = [
+            'llama-3.3-70b-versatile',
+            'llama-3.1-8b-instant',
+            'mixtral-8x7b-32768'
+        ]
+        self.groq_model = self.groq_candidates[0]
         self.groq_url = "https://api.groq.com/openai/v1/chat/completions"
 
     def _is_healthy(self, model):
@@ -88,6 +93,7 @@ class GeminiClient:
                     # Successful call clears health record
                     if model in self.health_map: del self.health_map[model]
                     self.model_id = model
+                    print(f"DEBUG: Gemini '{model}' success. Response sample: {response.text[:50]}...")
                     return response.text
                 continue
             except Exception as e:
@@ -105,6 +111,7 @@ class GeminiClient:
                 self.health_map[model] = {"last_fail": datetime.now(), "fail_type": fail_type}
                 continue
         
+        print("DEBUG: Gemini call failed for all models.")
         return None
 
     def _call_groq(self, prompt):
@@ -112,25 +119,23 @@ class GeminiClient:
             print("DEBUG: Groq Key missing, skipping Groq.")
             return None
             
-        print(f"DEBUG: Attempting Groq call with model {self.groq_model}...")
-        headers = {
-            "Authorization": f"Bearer {self.groq_key}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "model": self.groq_model,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.1
-        }
-        try:
-            resp = requests.post(self.groq_url, headers=headers, json=payload, timeout=20)
-            if resp.status_code != 200:
-                 print(f"[X] Groq Status: {resp.status_code} | {resp.text[:200]}")
-                 return None
-            return resp.json()['choices'][0]['message']['content']
-        except Exception as e:
-            print(f"[X] Groq Error: {e}")
-            return None
+        for model in self.groq_candidates:
+            print(f"DEBUG: Attempting Groq call with model {model}...")
+            payload["model"] = model
+            try:
+                resp = requests.post(self.groq_url, headers=headers, json=payload, timeout=20)
+                if resp.status_code != 200:
+                    print(f"[X] Groq '{model}' Status: {resp.status_code}")
+                    continue
+                content = resp.json()['choices'][0]['message']['content']
+                if content:
+                    print(f"DEBUG: Groq Success ('{model}'). Response sample: {content[:50]}...")
+                    self.groq_model = model
+                    return content
+            except Exception as e:
+                print(f"[X] Groq Error ('{model}'): {e}")
+                continue
+        return None
 
     def _smart_call(self, prompt, image_path=None):
         """Attempts Gemini first (if image), then Groq, then Gemini (if no image)."""
@@ -201,6 +206,19 @@ class GeminiClient:
 
     def _clean_json(self, text):
         if not text: return None
+        # Robust Regex-based JSON extraction
+        import re
+        # Try to find content between ```json ... ```
+        code_block = re.search(r'```json\s*(.*?)\s*```', text, re.DOTALL)
+        if code_block:
+            return code_block.group(1).strip()
+        
+        # Try to find content between { ... } or [ ... ]
+        json_match = re.search(r'(\{.*\}|\[.*\])', text, re.DOTALL)
+        if json_match:
+            return json_match.group(1).strip()
+
+        # Fallback to simple cleaning
         clean = text.strip().replace('```json', '').replace('```', '')
         return clean.strip()
 
