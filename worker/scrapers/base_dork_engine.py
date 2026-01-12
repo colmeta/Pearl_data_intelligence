@@ -42,42 +42,53 @@ class BaseDorkEngine:
             encoded_val = urllib.parse.quote(f"site:{site_filter} {query}")
             url = f"https://www.google.com/search?q={encoded_val}&num=10"
             
-            await self.page.goto(url, wait_until="domcontentloaded", timeout=15000)
-            await Humanizer.random_sleep(1, 2)
+            await self.page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            await Humanizer.random_sleep(2, 3)
             
-            # Check for Basic HTML
             content = await self.page.content()
-            is_basic = "<!DOCTYPE html PUBLIC" in content or "ZINbbc" in content
+            is_basic = "<!DOCTYPE html PUBLIC" in content or "ZINbbc" in content or "google.com/search" in content and "gb_e" not in content
             
             results = []
-            
             if is_basic:
-                links = await self.page.query_selector_all("div.ZINbbc > div:nth-child(1) > a")
-            else:
-                links = await self.page.query_selector_all("div.g a")
+                print(f"[{self.platform}] 🔦 Basic HTML Detected on Google. Bypassing...")
+                items = await self.page.query_selector_all("div.ZINbbc")
+                for item in items:
+                    link_handle = await item.query_selector("a[href*='/url?q=']")
+                    if not link_handle: continue
 
-            for link in links:
-                try:
-                    href = await link.get_attribute("href")
-                    if not href or site_filter not in href: continue
-                    
+                    href = await link_handle.get_attribute("href")
                     if "/url?q=" in href:
                         href = href.split("/url?q=")[1].split("&")[0]
                         href = urllib.parse.unquote(href)
                     
-                    title_wrapper = await link.query_selector("h3") or await link.query_selector("div.vvjwJb")
-                    title = await title_wrapper.inner_text() if title_wrapper else "Unknown Result"
+                    if site_filter not in href: continue
+
+                    title_handle = await item.query_selector("h3") or await item.query_selector("div.vvjwJb")
+                    title = await title_handle.inner_text() if title_handle else "Social Profile"
                     
                     results.append({
                         "name": title,
-                        "title": "N/A",  # To be parsed by child class if needed
                         "company": self.platform.capitalize(),
                         "source_url": href,
                         "verified": True,
-                        "snippet": f"Via Google ({self.platform})"
+                        "snippet": f"Via Google Basic ({self.platform})"
                     })
-                except:
-                    continue
+            else:
+                links = await self.page.query_selector_all("div.g a")
+                for link in links:
+                    href = await link.get_attribute("href")
+                    if not href or site_filter not in href: continue
+                    
+                    title_handle = await link.query_selector("h3")
+                    title = await title_handle.inner_text() if title_handle else await link.inner_text()
+                    
+                    results.append({
+                        "name": title,
+                        "company": self.platform.capitalize(),
+                        "source_url": href,
+                        "verified": True,
+                        "snippet": f"Via Google Stealth ({self.platform})"
+                    })
             
             return results
         except Exception as e:

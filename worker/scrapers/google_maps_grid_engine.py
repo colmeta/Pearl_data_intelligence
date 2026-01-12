@@ -25,7 +25,7 @@ class GoogleMapsGridEngine:
         base_url = f"https://www.google.com/maps/search/{query}"
         
         try:
-            await self.page.goto(base_url, timeout=30000, wait_until="networkidle")
+            await self.page.goto(base_url, timeout=45000, wait_until="domcontentloaded")
             
             # 2. Infinite Scroll to Trigger Load
             print("⏳ Clarity Pearl: Triggering Deep Scroll for Local Businesses...")

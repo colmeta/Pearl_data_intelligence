@@ -228,7 +228,7 @@ class HydraController:
             
             # Anti-detect script injection V2 (Applying to ALL profiles for Maximum Capacity)
             if stealth_profile in ["stealth", "mobile", "aggressive"]:
-                await stealth_v2.apply_advanced_stealth(page)
+                await stealth_v2.apply_advanced_stealth(page, user_agent=selected_ua)
             
             try:
                 # A/B TESTING LOGIC

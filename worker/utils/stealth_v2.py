@@ -8,69 +8,73 @@ class StealthContextV2:
     """
     
     @staticmethod
-    async def apply_advanced_stealth(page):
-        # 1. Inject Canvas Fingerprint Noise
-        # This makes every Hydra Head unique to graphics hardware detectors.
-        await page.add_init_script("""
-            const toBlob = HTMLCanvasElement.prototype.toBlob;
-            const toDataURL = HTMLCanvasElement.prototype.toDataURL;
-            const getImageData = CanvasRenderingContext2D.prototype.getImageData;
+    async def apply_advanced_stealth(page, user_agent=None):
+        """
+        GUERILLA MODE: Syncs signatures to UA and adds deep behavioral noise.
+        """
+        # Determine Platform/OS from UA
+        platform = "Win32"
+        languages = ["en-US", "en"]
+        
+        if user_agent:
+            if "iPhone" in user_agent:
+                platform = "iPhone"
+            elif "Android" in user_agent:
+                platform = "Linux armv8l"
+            elif "Macintosh" in user_agent:
+                platform = "MacIntel"
+            elif "Windows" in user_agent:
+                platform = "Win32"
 
-            const noise = () => {
-                const s = Math.random() * 0.1;
-                return s - 0.05;
+        # 1. Signature Sync (Remove Inconsistency Flags)
+        await page.add_init_script(f"""
+            Object.defineProperty(navigator, 'platform', {{ get: () => '{platform}' }});
+            Object.defineProperty(navigator, 'languages', {{ get: () => ['en-US', 'en'] }});
+            Object.defineProperty(navigator, 'hardwareConcurrency', {{ get: () => {random.choice([4, 8, 12, 16])} }});
+            Object.defineProperty(navigator, 'deviceMemory', {{ get: () => {random.choice([8, 16, 32])} }});
+            Object.defineProperty(navigator, 'vendor', {{ get: () => 'Google Inc.' }});
+        """)
+
+        # 2. Canvas Fingerprint Noise (Dynamic & Non-Repeating)
+        await page.add_init_script("""
+            const originalToBlob = HTMLCanvasElement.prototype.toBlob;
+            const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
+            const originalGetImageData = CanvasRenderingContext2D.prototype.getImageData;
+
+            const addNoise = (data) => {
+                const shift = Math.floor(Math.random() * 2) - 1; // -1, 0, or 1
+                for (let i = 0; i < data.length; i += 4) {
+                    data[i] = Math.min(255, Math.max(0, data[i] + shift));
+                }
             };
 
             CanvasRenderingContext2D.prototype.getImageData = function(x, y, w, h) {
-                const res = getImageData.apply(this, arguments);
-                for (let i = 0; i < res.data.length; i += 4) {
-                    res.data[i] = res.data[i] + noise();
-                }
+                const res = originalGetImageData.apply(this, arguments);
+                addNoise(res.data);
                 return res;
             };
         """)
 
-        # 2. Modern WebGL Vendor Selection
-        vendors = [
-            ("Intel Inc.", "Intel Iris OpenGL Engine"),
-            ("Google Inc.", "ANGLE (Intel(R) UHD Graphics 620 Direct3D11 vs_5_0 ps_5_0)"),
-            ("Apple Inc.", "Apple GPU")
-        ]
-        vendor, renderer = random.choice(vendors)
+        # 3. WebGL Mocking (Sync to Platform)
+        vendor, renderer = ("Intel Inc.", "Intel Iris OpenGL Engine")
+        if "iPhone" in platform:
+            vendor, renderer = ("Apple Inc.", "Apple GPU")
         
         await page.add_init_script(f"""
-            const getParameter = WebGLRenderingContext.prototype.getParameter;
+            const getParam = WebGLRenderingContext.prototype.getParameter;
             WebGLRenderingContext.prototype.getParameter = function(parameter) {{
                 if (parameter === 37445) return '{renderer}';
                 if (parameter === 37446) return '{vendor}';
-                return getParameter(parameter);
+                return getParam(parameter);
             }};
         """)
 
-        # 3. Human-like User Agent and Platform Sync
-        # We ensure navigator.platform matches the UA to prevent "Inconsistency Flags"
+        # 4. Mask Automation Tell (The #1 Kill-switch)
         await page.add_init_script("""
-            Object.defineProperty(navigator, 'platform', { get: () => 'Win32' });
-            Object.defineProperty(navigator, 'productSub', { get: () => '20030107' });
-            Object.defineProperty(navigator, 'vendor', { get: () => 'Google Inc.' });
-        """)
-
-        # 4. CRITICAL: Mask Navigator.webdriver (The #1 Bot Tell)
-        await page.add_init_script("""
-            Object.defineProperty(navigator, 'webdriver', {
-                get: () => undefined
-            });
-        """)
-
-        # 5. Mock Chrome Runtime (To look like a real headed Chrome)
-        await page.add_init_script("""
-            window.chrome = {
-                runtime: {}
-            };
-        """)
-
-        # 6. Permissions API Mock
-        await page.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+            window.chrome = { runtime: {} };
+            
+            // Overwrite CDP detection
             const originalQuery = window.navigator.permissions.query;
             window.navigator.permissions.query = (parameters) => (
                 parameters.name === 'notifications' ?
@@ -79,26 +83,23 @@ class StealthContextV2:
             );
         """)
 
-        # 7. Plugin Entropy
-        await page.add_init_script("""
-            Object.defineProperty(navigator, 'plugins', {
-                get: () => [1, 2, 3, 4, 5],
-            });
-        """)
-
     @staticmethod
     async def enact_human_behavior(page):
         """
         Performs non-linear mouse movements and variable scrolling.
         """
-        # random viewport jitter
+        # Random viewport jitter
         width = 1280 + random.randint(-50, 50)
         height = 720 + random.randint(-50, 50)
         await page.set_viewport_size({"width": width, "height": height})
         
-        # Natural scroll
+        # Natural scroll with variable velocity
         for _ in range(random.randint(2, 5)):
-            await page.mouse.wheel(0, random.randint(300, 700))
+            pixels = random.randint(300, 800)
+            steps = 5
+            for i in range(steps):
+                await page.mouse.wheel(0, pixels // steps)
+                await page.wait_for_timeout(random.randint(50, 150))
             await page.wait_for_timeout(random.randint(500, 1500))
 
 stealth_v2 = StealthContextV2()

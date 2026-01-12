@@ -43,65 +43,57 @@ class LinkedInEngine:
             url = f"https://www.google.com/search?q={encoded_query}&num=10"
             
             print(f"[{self.platform}] 📡 Google: {url}")
-            await self.page.goto(url, wait_until="domcontentloaded", timeout=20000)
-            await Humanizer.random_sleep(1, 2)
+            await self.page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            await Humanizer.random_sleep(2, 3)
             
             # Check for "Basic HTML" (legacy) which happens on aggressive blocking
             content = await self.page.content()
-            is_basic_html = "<!DOCTYPE html PUBLIC" in content or "ZINbbc" in content
+            is_basic_html = "<!DOCTYPE html PUBLIC" in content or "ZINbbc" in content or "google.com/search" in content and "gb_e" not in content
             
+            results = []
             if is_basic_html:
-                print(f"[{self.platform}] 🔦 Detected 'Basic HTML' Layout. Adjusting selectors...")
-                links = await self.page.query_selector_all("div.ZINbbc > div:nth-child(1) > a")
+                print(f"[{self.platform}] 🔦 Detected 'Basic HTML' Layout. Extraction bypass active...")
+                # In Basic HTML, results are in div.ZINbbc
+                items = await self.page.query_selector_all("div.ZINbbc")
+                for item in items:
+                    link_handle = await item.query_selector("a[href*='/url?q=']")
+                    if not link_handle: continue
+                    
+                    href = await link_handle.get_attribute("href")
+                    if "/url?q=" in href:
+                        href = href.split("/url?q=")[1].split("&")[0]
+                        href = urllib.parse.unquote(href)
+                    
+                    if "/in/" not in href: continue
+
+                    title_handle = await item.query_selector("h3") or await item.query_selector("div.vvjwJb")
+                    title_text = await title_handle.inner_text() if title_handle else "LinkedIn Profile"
+                    
+                    # Snippet extraction
+                    snippet_handle = await item.query_selector("div.s3v9rd")
+                    snippet = await snippet_handle.inner_text() if snippet_handle else ""
+                    
+                    results.append(self._parse_linkedin_title(title_text, href, snippet))
             else:
                 # Standard Modern Layout
                 links = await self.page.query_selector_all("div.g a[href*='linkedin.com/in/']")
+                for link in links:
+                    href = await link.get_attribute("href")
+                    if not href or "/in/" not in href: continue
+                    
+                    title_handle = await link.query_selector("h3")
+                    title_text = await title_handle.inner_text() if title_handle else await link.inner_text()
+                    
+                    # Find snippet in the same .g container
+                    snippet = ""
+                    try:
+                        container = await self.page.evaluate_handle("el => el.closest('.g')", link)
+                        if container:
+                            snippet = await container.as_element().inner_text()
+                    except: pass
+                    
+                    results.append(self._parse_linkedin_title(title_text, href, snippet))
 
-            results = []
-            for link in links:
-                href = await link.get_attribute("href")
-                if not href or "/in/" not in href or "google.com" in href: continue
-                
-                # Cleaning URL from Google redirect if present (in Basic HTML it often is '/url?q=...')
-                if "/url?q=" in href:
-                    href = href.split("/url?q=")[1].split("&")[0]
-                    href = urllib.parse.unquote(href)
-
-                try:
-                    title_handle = await link.query_selector("h3") or await link.query_selector("div.vvjwJb") # Basic HTML title
-                    if title_handle:
-                        title_text = await title_handle.inner_text()
-                    else:
-                        title_text = await link.inner_text() # Fallback for extremely basic A tags
-                    
-                    if not title_text or "LinkedIn" not in title_text and "-" not in title_text: continue
-
-                    # Flexible Parsing
-                    # "Name - Title - Company | LinkedIn" or "Name - Title | LinkedIn"
-                    clean_text = title_text.replace("| LinkedIn", "").replace(" ...", "")
-                    parts = clean_text.split(" - ")
-                    
-                    name = parts[0].strip()
-                    job = parts[1].strip() if len(parts) > 1 else "Professional"
-                    company = parts[2].strip() if len(parts) > 2 else "LinkedIn"
-                    
-                    # Extraction: Hunt for Email/DM patterns in snippet
-                    email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', clean_text)
-                    email = email_match.group(0) if email_match else None
-                    
-                    results.append({
-                        "name": name,
-                        "title": job,
-                        "company": company,
-                        "email": email,
-                        "source_url": href,
-                        "verified": True,
-                        "snippet": f"Via Google Unshakable | {clean_text}",
-                        "channel_priority": ["email", "dm"]
-                    })
-                except Exception:
-                    continue
-            
             if results:
                  print(f"[{self.platform}] ✅ Google found {len(results)} leads.")
             return results
@@ -109,6 +101,37 @@ class LinkedInEngine:
         except Exception as e:
             print(f"[{self.platform}] ❌ Google Error: {e}")
             return []
+
+    def _parse_linkedin_title(self, title_text, href, snippet=""):
+        """Centralized parser for LinkedIn search results."""
+        clean_text = title_text.replace("| LinkedIn", "").replace(" ...", "").strip()
+        parts = clean_text.split(" - ")
+        
+        name = parts[0].strip()
+        job = parts[1].strip() if len(parts) > 1 else "Professional"
+        company = "LinkedIn"
+        
+        if len(parts) > 2:
+            company = parts[2].strip()
+        elif " at " in job:
+            job_parts = job.split(" at ")
+            job = job_parts[0].strip()
+            company = job_parts[1].strip()
+
+        # Check snippet for email
+        email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', f"{clean_text} {snippet}")
+        email = email_match.group(0) if email_match else None
+        
+        return {
+            "name": name,
+            "title": job,
+            "company": company,
+            "email": email,
+            "source_url": href,
+            "verified": True,
+            "snippet": snippet[:200] if snippet else clean_text,
+            "channel_priority": ["email", "dm"]
+        }
 
     async def _search_bing(self, query):
         try:

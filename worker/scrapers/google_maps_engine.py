@@ -15,12 +15,12 @@ class GoogleMapsEngine:
         url = f"https://www.google.com/maps/search/{encoded_query}"
         
         try:
-            await self.page.goto(url, wait_until="domcontentloaded", timeout=20000)
+            await self.page.goto(url, wait_until="domcontentloaded", timeout=45000)
             await Humanizer.random_sleep(2, 4)
             
             # Check for "Accept Cookies" (common on Google Maps)
             try:
-                await self.page.click("button[aria-label='Accept all']", timeout=2000)
+                await self.page.click("button[aria-label='Accept all']", timeout=5000)
                 print(f"[{self.platform}] 🍪 Cookies accepted.")
             except:
                 pass
@@ -28,7 +28,7 @@ class GoogleMapsEngine:
             # 2. Identify the Feed
             feed_selector = "div[role='feed']"
             try:
-                await self.page.wait_for_selector(feed_selector, timeout=10000)
+                await self.page.wait_for_selector(feed_selector, timeout=20000)
             except:
                 print(f"[{self.platform}] ⚠️ Feed not found. Might be a single location result or empty.")
                 return await self._scrape_single_result()
