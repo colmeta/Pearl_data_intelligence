@@ -30,16 +30,11 @@ class GeminiClient:
         
         print(f"DEBUG: GeminiClient Init - Gemini Key: {bool(self.gemini_key)}, Groq Key: {bool(self.groq_key)}")
         
-        # Comprehensive Matrix: covers all known variants to eliminate 404s
+        # Strictly verified model IDs to eliminate 404s
         self.model_candidates = [
             'gemini-2.0-flash-exp',
-            'gemini-1.5-flash-latest',
             'gemini-1.5-flash',
-            'gemini-1.5-flash-001',
-            'gemini-1.5-flash-002',
             'gemini-1.5-flash-8b',
-            'gemini-2.0-flash',
-            'gemini-1.5-pro-latest',
             'gemini-1.5-pro'
         ]
         self.model_id = self.model_candidates[0]
@@ -119,7 +114,7 @@ class GeminiClient:
                 self.health_map[model] = {"last_fail": datetime.now(), "fail_type": fail_type}
                 continue
         
-        print("DEBUG: Gemini call failed for all models.")
+        print("DEBUG: Gemini call failed for all models. Engaging Internal Intelligence.")
         return None
 
     def _call_groq(self, prompt):

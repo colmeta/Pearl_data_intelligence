@@ -27,7 +27,15 @@ class EnrichmentBridge:
             
             try:
                 # Strategy: Search LinkedIn for "Owner" or "CEO" of the business
-                business_name = lead.get('name')
+                business_name = lead.get('name', '').strip()
+                
+                # JUNK NAME PROTECTION: Skip if name is generic or too short
+                junk_markers = ["google maps", "placeholder", "search", "query", "unknown", "location", "business"]
+                if not business_name or len(business_name) < 3 or any(m in business_name.lower() for m in junk_markers):
+                    print(f"🌉 Bridge: Skipping enrichment for junk name: '{business_name}'")
+                    enriched_leads.append(lead)
+                    continue
+
                 location = lead.get('address', '').split(',')[-1].strip() if lead.get('address') else ""
                 
                 search_query = f'owner CEO "{business_name}" {location}'

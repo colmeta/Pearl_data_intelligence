@@ -46,6 +46,9 @@ class LinkedInEngine:
             await self.page.goto(url, wait_until="domcontentloaded", timeout=30000)
             await Humanizer.random_sleep(2, 3)
             
+            # Re-check page state before selecting
+            if self.page.is_closed(): return []
+            
             # Check for "Basic HTML" (legacy) which happens on aggressive blocking
             content = await self.page.content()
             is_basic_html = "<!DOCTYPE html PUBLIC" in content or "ZINbbc" in content or "google.com/search" in content and "gb_e" not in content
@@ -139,8 +142,7 @@ class LinkedInEngine:
             url = f"https://www.bing.com/search?q={encoded_query}"
             
             await self.page.goto(url, wait_until="domcontentloaded", timeout=20000)
-            await asyncio.sleep(1)
-            await Humanizer.natural_scroll(self.page)
+            await Humanizer.random_sleep(2, 3)
             
             # Re-check page state before selecting
             if self.page.is_closed(): return []
@@ -180,8 +182,11 @@ class LinkedInEngine:
             encoded_query = urllib.parse.quote(f"site:linkedin.com/in/ {query}")
             url = f"https://duckduckgo.com/?q={encoded_query}&t=hp&ia=web"
             
-            await self.page.goto(url, wait_until="domcontentloaded", timeout=15000)
+            await self.page.goto(url, wait_until="domcontentloaded", timeout=20000)
             await Humanizer.random_sleep(2, 3)
+            
+            # Re-check page state before selecting
+            if self.page.is_closed(): return []
             
             links = await self.page.query_selector_all("a[data-testid='result-title-a']")
             

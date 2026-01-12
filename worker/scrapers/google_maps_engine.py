@@ -15,48 +15,46 @@ class GoogleMapsEngine:
         url = f"https://www.google.com/maps/search/{encoded_query}"
         
         try:
-            await self.page.goto(url, wait_until="domcontentloaded", timeout=45000)
-            await Humanizer.random_sleep(2, 4)
+            await self.page.goto(url, wait_until="domcontentloaded", timeout=60000)
+            await Humanizer.random_sleep(3, 5)
             
-            # Check for "Accept Cookies" (common on Google Maps)
-            try:
-                await self.page.click("button[aria-label='Accept all']", timeout=5000)
-                print(f"[{self.platform}] 🍪 Cookies accepted.")
-            except:
-                pass
+            # Check for "Accept Cookies" - Harder look
+            cookie_selectors = [
+                "button[aria-label='Accept all']",
+                "button:has-text('Accept all')",
+                "form[action*='consent'] button"
+            ]
+            for selector in cookie_selectors:
+                try:
+                    btn = await self.page.query_selector(selector)
+                    if btn:
+                        await btn.click(timeout=3000)
+                        print(f"[{self.platform}] 🍪 Cookies handled via '{selector}'.")
+                        await asyncio.sleep(1)
+                        break
+                except: continue
 
             # 2. Identify the Feed
             feed_selector = "div[role='feed']"
             try:
-                await self.page.wait_for_selector(feed_selector, timeout=20000)
+                await self.page.wait_for_selector(feed_selector, timeout=15000)
             except:
-                print(f"[{self.platform}] ⚠️ Feed not found. Might be a single location result or empty.")
+                print(f"[{self.platform}] ⚠️ Feed not found. Checking for single result...")
                 return await self._scrape_single_result()
 
-            # 3. Scroll to load more
+            # 3. Scroll to load more (Limited for speed)
             print(f"[{self.platform}] 📜 Scrolling feed...")
-            previously_counted = 0
-            
-            for _ in range(3): 
-                await self.page.hover(feed_selector)
-                await self.page.evaluate(f"""
-                    const feed = document.querySelector("{feed_selector}");
-                    if(feed) feed.scrollTop = feed.scrollHeight;
-                """)
+            for _ in range(2): 
+                await self.page.evaluate(f'document.querySelector("{feed_selector}").scrollTop = 10000')
                 await Humanizer.random_sleep(2, 3)
-                
-                items = await self.page.query_selector_all(f"{feed_selector} > div")
-                if len(items) == previously_counted:
-                    break
-                previously_counted = len(items)
 
             # 4. Extract
             results = []
-            feed_children = await self.page.query_selector_all(f"{feed_selector} > div > div[role='article']")
+            feed_children = await self.page.query_selector_all("div[role='article']")
             if not feed_children:
                 feed_children = await self.page.query_selector_all("a[href*='/maps/place/']")
 
-            print(f"[{self.platform}] 🧐 Analyzing {len(feed_children)} potential listings...")
+            print(f"[{self.platform}] 🧐 Extracting up to 10 listings...")
 
             for item in feed_children[:10]:
                 try:
@@ -65,15 +63,16 @@ class GoogleMapsEngine:
                     
                     if not href or "/maps/place/" not in href:
                         link_el = await item.query_selector("a[href*='/maps/place/']")
-                        if link_el:
-                            href = await link_el.get_attribute("href")
-                        else:
-                            continue
+                        if link_el: href = await link_el.get_attribute("href")
+                        else: continue
 
                     lines = [line.strip() for line in text_content.split("\n") if line.strip()]
-                    if not lines: continue
+                    if len(lines) < 1: continue
                     
                     name = lines[0]
+                    # Filter out purely coordinate names or placeholders
+                    if len(name) < 2 or name.startswith("Coordinates"): continue
+
                     rating = "N/A"
                     address = "Unknown"
                     phone = "N/A"
@@ -81,7 +80,7 @@ class GoogleMapsEngine:
                     for line in lines:
                         if "(" in line and ")" in line and ("." in line or "," in line):
                             rating = line.split("·")[0].strip()
-                        if "United States" in line or (", " in line and any(char.isdigit() for char in line)):
+                        if "United States" in line or "UK" in line or "Canada" in line or (", " in line and any(char.isdigit() for char in line)):
                             address = line
                         if line.startswith("+") or (line.count("-") == 2 and any(char.isdigit() for char in line)):
                             phone = line
@@ -95,35 +94,25 @@ class GoogleMapsEngine:
                         "verified": True,
                         "snippet": f"{name} ({rating}) - {address}"
                     })
-                except:
-                    continue
+                except: continue
             
-            if results:
-                print(f"[{self.platform}] ✅ Extracted {len(results)} locations.")
-                return results
-            else:
-                return await self._scrape_single_result()
+            return results
 
         except Exception as e:
-            print(f"[{self.platform}] ❌ Error: {e}")
-            return [{
-                "name": "Google Maps Query",
-                "source_url": url,
-                "verified": False,
-                "snippet": f"Search initiated for: {query}. Visual verification required.",
-                "error": str(e)
-            }]
+            print(f"[{self.platform}] ❌ Extraction Failed: {e}")
+            return [] # Return empty list so bridge doesn't pivot on errors
 
     async def _scrape_single_result(self):
         """Fallback for when Maps redirects directly to a single result."""
         try:
-            print(f"[{self.platform}] 📍 analyzing single location view...")
+            print(f"[{self.platform}] 📍 Analyzing single location view...")
             
-            try:
-                h1 = await self.page.query_selector("h1")
-                name = await h1.inner_text()
-            except:
-                return []
+            # Wait for content
+            await self.page.wait_for_selector("h1", timeout=10000)
+            h1 = await self.page.query_selector("h1")
+            name = await h1.inner_text() if h1 else None
+            
+            if not name or "Maps" in name: return []
                 
             address = "N/A"
             phone = "N/A"
@@ -139,11 +128,7 @@ class GoogleMapsEngine:
                 
                 web_btn = await self.page.query_selector("a[data-item-id='authority']")
                 if web_btn: website = await web_btn.get_attribute("href")
-                
-                rating_span = await self.page.query_selector("div[role='complementary'] span[aria-label*='stars']")
-                if rating_span: rating = await rating_span.get_attribute("aria-label")
-            except:
-                pass
+            except: pass
 
             return [{
                 "name": name,
@@ -155,14 +140,4 @@ class GoogleMapsEngine:
                 "verified": True,
                 "snippet": f"Single Result: {name}"
             }]
-            
-        except Exception as e:
-            print(f"[{self.platform}] ❌ Single Result Error: {e}")
-            return [{
-                 "name": "Google Maps Search",
-                 "address": "Unknown Location",
-                 "source_url": self.page.url,
-                 "verified": False,
-                 "snippet": f"Visual confirmation required for: {self.page.url}",
-                 "error": str(e)
-            }]
+        except: return []
