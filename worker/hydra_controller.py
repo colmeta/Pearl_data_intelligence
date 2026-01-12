@@ -140,6 +140,13 @@ class HydraController:
     async def process_job_with_browser(self, job_id, query, platform='generic', compliance=None, launch_args=None, stealth_profile='stealth'):
         print(f"⚔️ Engaging Target: {query} [{platform}]")
         
+        # --- INITIALIZATION SAFETY ---
+        scraped_data = {}
+        data_results = []
+        is_verified = False
+        final_url = ""
+        shot_path = f"screenshots/mission_{job_id[:8]}.png"
+        
         if not launch_args:
             launch_args = ["--no-sandbox"]
 
@@ -263,9 +270,15 @@ class HydraController:
                 
                 # --- PLATFORM DISPATCHER (Refactored) ---
                 if platform == "linkedin":
+                    from scrapers.linkedin_engine import LinkedInEngine
                     engine = LinkedInEngine(page)
                     data_results = await engine.scrape(query)
-                elif platform in ["google_maps", "google_maps_grid"]:
+                elif platform == "google_maps":
+                    from scrapers.google_maps_engine import GoogleMapsEngine
+                    engine = GoogleMapsEngine(page)
+                    data_results = await engine.scrape(query)
+                elif platform == "google_maps_grid":
+                    from scrapers.google_maps_grid_engine import GoogleMapsGridEngine
                     engine = GoogleMapsGridEngine(page)
                     data_results = await engine.scrape(query)
                 elif platform == "directory":
@@ -273,24 +286,31 @@ class HydraController:
                     engine = DirectoryEngine(page)
                     data_results = await engine.scrape(query)
                 elif platform in ["producthunt", "tiktok", "amazon", "shopify", "omni"]:
+                    from scrapers.omni_scout_engine import OmniScoutEngine
                     engine = OmniScoutEngine(page)
                     data_results = await engine.unified_scout(query)
                 elif platform == 'twitter':
+                    from scrapers.social_radar import TwitterEngine
                     engine = TwitterEngine(page)
                     data_results = await engine.scrape(query)
                 elif platform == 'instagram':
+                    from scrapers.social_radar import InstagramEngine
                     engine = InstagramEngine(page)
                     data_results = await engine.scrape(query)
                 elif platform in ['google_news', 'news']:
+                    from scrapers.news_pulse_engine import NewsPulseEngine
                     engine = NewsPulseEngine(page)
                     data_results = await engine.scrape(query)
                 elif platform == 'real_estate':
+                    from scrapers.real_estate_engine import RealEstateEngine
                     engine = RealEstateEngine(page)
                     data_results = await engine.scrape(query)
                 elif platform in ['job_scout', 'hiring']:
+                    from scrapers.job_scout_engine import JobScoutEngine
                     engine = JobScoutEngine(page)
                     data_results = await engine.scrape(query)
                 elif platform == 'facebook':
+                    from scrapers.facebook_engine_v2 import FacebookEngineV2
                     engine = FacebookEngineV2(page)
                     data_results = await engine.scrape(query)
                 elif platform == 'website':
