@@ -55,7 +55,8 @@ class HydraController:
             except Exception as e:
                 print(f"[{self.worker_id}] Supabase Connection Failed: {e}")
         
-        self.proxy_manager = stealth_v2 
+        self.proxy_manager = ProxyManager(os.getenv("PROXY_LIST_PATH"))
+        self.stealth_helper = stealth_v2
         self.humanizer = Humanizer()
         self.email_verifier = email_verifier
         self.prioritizer = lead_prioritizer
@@ -646,7 +647,7 @@ class HydraController:
             "best_user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "active_missions": self.active_missions,
             "last_pulse": datetime.now().isoformat(),
-            "burned_proxies": self.proxy_manager.banned_proxies if hasattr(self.proxy_manager, 'banned_proxies') else [],
+            "burned_proxies": list(self.proxy_manager.bad_proxies) if hasattr(self.proxy_manager, 'bad_proxies') else (self.proxy_manager.banned_proxies if hasattr(self.proxy_manager, 'banned_proxies') else []),
             "node_type": "residential",
             "public_ip": self.node_geo.get("public_ip"),
             "geo_city": self.node_geo.get("geo_city"),

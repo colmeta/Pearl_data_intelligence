@@ -161,11 +161,36 @@ class GeminiClient:
         return self._smart_call(prompt) or "Arbiter Offline"
 
     async def dispatch_mission(self, user_prompt):
-        prompt = f"Decompose user prompt into JSON list of search jobs: '{user_prompt}'. Platforms: linkedin, google_maps, generic. Format: [{{'query': '...', 'platform': '...', 'reasoning': '...'}}]"
+        """
+        PHASE 6: THE ORACLE - SEMANTIC SWARM INTELLIGENCE
+        Converts a single prompt into a cluster of high-intent search jobs.
+        """
+        prompt = f"""
+        YOU ARE THE ORACLE (Phase 6 Strategic Intelligence).
+        TASK: Decompose this user prompt into a SEMANTIC SWARM of search jobs: "{user_prompt}"
+        
+        STRATEGY:
+        1. Identify the core Persona (e.g., Realtor).
+        2. Generate 3-5 Semantic Variants (Synonyms, Acronyms, Related Job Titles).
+        3. Localize queries if a location is mentioned.
+        4. Match with the best Platform: 
+           - 'linkedin' for people/roles.
+           - 'google_maps' for physical businesses.
+           - 'generic' for general web research.
+        
+        Return ONLY a JSON list of objects:
+        [{{
+            "query": "The optimized search string",
+            "platform": "linkedin|google_maps|generic",
+            "reasoning": "Brief explanation of why this synonym/variant was chosen"
+        }}]
+        """
         resp = self._smart_call(prompt)
         try:
             return json.loads(self._clean_json(resp))
-        except: return []
+        except: 
+            print(f"⚠️ Oracle Parsing Error. Falling back to core prompt.")
+            return [{"query": user_prompt, "platform": "generic", "reasoning": "AI Parsing Failure Fallback"}]
 
     async def generate_content(self, prompt):
         """
