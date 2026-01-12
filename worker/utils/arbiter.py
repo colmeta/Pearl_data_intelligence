@@ -125,7 +125,8 @@ class ArbiterAgent:
             clean_json = gemini_client._clean_json(ai_response_text)
             return json.loads(clean_json)
         except Exception as e:
-            print(f"[X] Oracle Predictive Error: {e}")
+            # Guerilla Pivot: Logging the transition to Baseline Intelligence
+            print(f"   ⚖️  Oracle Predictive Signal: AI Offline ({e}). Engaging Baseline Intelligence...")
             return self._calculate_heuristic_intent(lead_data)
 
     def _calculate_heuristic_intent(self, lead_data):

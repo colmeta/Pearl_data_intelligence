@@ -138,8 +138,12 @@ class LinkedInEngine:
             encoded_query = urllib.parse.quote(f"site:linkedin.com/in/ {query}")
             url = f"https://www.bing.com/search?q={encoded_query}"
             
-            await self.page.goto(url, wait_until="domcontentloaded", timeout=15000)
+            await self.page.goto(url, wait_until="domcontentloaded", timeout=20000)
+            await asyncio.sleep(1)
             await Humanizer.natural_scroll(self.page)
+            
+            # Re-check page state before selecting
+            if self.page.is_closed(): return []
             
             # Bing Selectors
             links = await self.page.query_selector_all("li.b_algo h2 a")
