@@ -15,11 +15,13 @@ import SwarmObservatory from './components/SwarmObservatory'
 import CRMHub from './components/CRMHub'
 import OnboardingWizard from './components/OnboardingWizard'
 import CompliancePortal from './pages/CompliancePortal'
+import VelocityView from './components/VelocityView'
+import DisplacementLibrary from './components/DisplacementLibrary'
 import './styles/supreme.css'
 
 function App() {
     const [path, setPath] = useState(window.location.pathname)
-    const [view, setView] = useState('sovereign') // 'sovereign', 'vault', or 'settings'
+    const [view, setView] = useState('sovereign') // 'sovereign', 'vault', 'intelligence', 'swarm', etc.
     const [session, setSession] = useState(null)
     const [loading, setLoading] = useState(true)
     const [showAdvanced, setShowAdvanced] = useState(false)
@@ -97,7 +99,7 @@ function App() {
 
     return (
         <Layout session={session}>
-            <div style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', overflowX: 'auto' }} className="tab-navigation">
+            <div style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', overflowX: 'auto', paddingBottom: '0.5rem' }} className="tab-navigation">
                 <button
                     onClick={() => setView('sovereign')}
                     style={{
@@ -114,7 +116,25 @@ function App() {
                         fontWeight: 900, cursor: 'pointer', borderBottom: view === 'vault' ? '2px solid hsl(var(--pearl-primary))' : 'none', whiteSpace: 'nowrap'
                     }}
                 >
-                    💎 VAULT
+                    💎 SALES VAULT
+                </button>
+                <button
+                    onClick={() => setView('velocity')}
+                    style={{
+                        background: 'none', border: 'none', padding: '1rem 0', color: view === 'velocity' ? 'hsl(var(--pearl-primary))' : 'rgba(255,255,255,0.4)',
+                        fontWeight: 900, cursor: 'pointer', borderBottom: view === 'velocity' ? '2px solid hsl(var(--pearl-primary))' : 'none', whiteSpace: 'nowrap'
+                    }}
+                >
+                    📈 VELOCITY
+                </button>
+                <button
+                    onClick={() => setView('displacement')}
+                    style={{
+                        background: 'none', border: 'none', padding: '1rem 0', color: view === 'displacement' ? 'hsl(var(--pearl-primary))' : 'rgba(255,255,255,0.4)',
+                        fontWeight: 900, cursor: 'pointer', borderBottom: view === 'displacement' ? '2px solid hsl(var(--pearl-primary))' : 'none', whiteSpace: 'nowrap'
+                    }}
+                >
+                    ⚡ SCRIPTS
                 </button>
                 <button
                     onClick={() => setView('intelligence')}
@@ -150,7 +170,7 @@ function App() {
                         fontWeight: 900, cursor: 'pointer', borderBottom: view === 'bulk' ? '2px solid hsl(var(--pearl-primary))' : 'none', whiteSpace: 'nowrap'
                     }}
                 >
-                    ⚡ BULK
+                    📁 BULK
                 </button>
                 <button
                     onClick={() => setView('settings')}
@@ -279,6 +299,10 @@ function App() {
                         <LiveFeed />
                     </div>
                 </div>
+            ) : view === 'velocity' ? (
+                <VelocityView />
+            ) : view === 'displacement' ? (
+                <DisplacementLibrary />
             ) : view === 'intelligence' ? (
                 <IntelligenceView session={session} />
             ) : view === 'swarm' ? (

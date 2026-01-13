@@ -65,14 +65,16 @@ export default function OracleControl() {
                     overflowY: 'auto',
                     marginBottom: '1rem',
                     padding: '1rem',
-                    background: 'rgba(0,0,0,0.2)',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '12px',
                     fontFamily: '"JetBrains Mono", monospace',
-                    fontSize: '0.8rem'
+                    fontSize: '0.85rem',
+                    color: 'rgba(255,255,255,0.9)'
                 }}
             >
                 {history.length === 0 && (
-                    <div style={{ color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: '4rem' }}>
+                    <div style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: '4rem', lineHeight: '1.6' }}>
                         Ready for command. Example: "Scout real estate in Miami and ghostwrite to owners."
                     </div>
                 )}

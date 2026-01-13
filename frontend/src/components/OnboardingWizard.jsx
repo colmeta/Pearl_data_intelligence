@@ -115,10 +115,10 @@ export default function OnboardingWizard({ session, onComplete }) {
                     <>
                         <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>👋</div>
                         <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1rem', background: 'linear-gradient(to right, hsl(var(--pearl-primary)), hsl(var(--pearl-accent)))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                            Welcome to Pearl!
+                            Welcome to Clarity Pearl!
                         </h1>
                         <p style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.7)', marginBottom: '2rem', lineHeight: '1.6' }}>
-                            The Federal Reserve of Information<br />for AI Agents & Sales Teams
+                            The Ultimate Sales Intelligence Platform<br />Powered by AI & Global Data Swarm
                         </p>
                         <button onClick={() => setStep(2)} className="btn-premium" style={{ fontSize: '1rem', padding: '1rem 2rem' }}>
                             Let's Get Started →
@@ -296,7 +296,7 @@ export default function OnboardingWizard({ session, onComplete }) {
                             </ul>
                         </div>
                         <button onClick={handleComplete} className="btn-premium" style={{ fontSize: '1rem', padding: '1rem 2rem' }}>
-                            Explore Pearl →
+                            Explore Clarity Pearl →
                         </button>
                     </>
                 )}

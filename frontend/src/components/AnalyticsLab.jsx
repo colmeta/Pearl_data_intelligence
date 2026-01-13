@@ -49,7 +49,7 @@ export default function AnalyticsLab() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                 {/* Group A */}
                 <div style={{ padding: '1.5rem', borderRadius: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.5rem', fontWeight: 700 }}>STRATEGY A: STEALTH (CONTROL)</div>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.5rem', fontWeight: 700 }}>STRATEGY A: STEALTH (CONTROL)</div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                         <div style={{ fontSize: '2rem', fontWeight: 900 }}>{stats.accuracyA}%</div>
                         <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>{stats.countA} Missions</div>
@@ -61,7 +61,7 @@ export default function AnalyticsLab() {
 
                 {/* Group B */}
                 <div style={{ padding: '1.5rem', borderRadius: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.5rem', fontWeight: 700 }}>STRATEGY B: AGGRESSIVE (LAB)</div>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.5rem', fontWeight: 700 }}>STRATEGY B: AGGRESSIVE (LAB)</div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                         <div style={{ fontSize: '2rem', fontWeight: 900 }}>{stats.accuracyB}%</div>
                         <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>{stats.countB} Missions</div>

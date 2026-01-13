@@ -56,7 +56,7 @@ export default function LiveFeed() {
             </div>
 
             {jobs.length === 0 ? (
-                <div style={{ padding: '3rem 2rem', textAlign: 'center', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-xl)', border: '1px dashed var(--glass-border)' }}>
+                <div style={{ padding: '3rem 2rem', textAlign: 'center', color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-xl)', border: '1px dashed var(--glass-border)' }}>
                     <div style={{ marginBottom: '1rem', fontSize: '1.5rem', opacity: 0.3 }}>📶</div>
                     <p style={{ margin: 0, fontSize: '0.75rem', letterSpacing: '1px' }}>AWAITING SENSORY SIGNALS...</p>
                 </div>
@@ -68,7 +68,7 @@ export default function LiveFeed() {
                             flexDirection: 'column',
                             gap: '0.5rem',
                             padding: '1.25rem',
-                            background: 'rgba(0,0,0,0.25)',
+                            background: 'rgba(255,255,255,0.03)',
                             borderRadius: '16px',
                             border: '1px solid var(--glass-border)',
                             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'

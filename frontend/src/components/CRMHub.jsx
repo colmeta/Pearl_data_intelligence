@@ -240,7 +240,7 @@ export default function CRMHub({ session, orgId }) {
                     <div style={{ display: 'grid', gap: '0.75rem' }}>
                         {crmLogs.map(log => (
                             <div key={log.id} style={{
-                                background: 'rgba(0,0,0,0.2)',
+                                background: 'rgba(255,255,255,0.03)',
                                 borderRadius: '8px',
                                 padding: '1rem',
                                 border: `1px solid ${getStatusColor(log.status)}30`,
